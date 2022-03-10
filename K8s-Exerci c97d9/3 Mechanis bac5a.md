@@ -11,15 +11,6 @@
     3. Components find the change of the state
     4. Components try to fit in the changed state
 
-## Structure
-
-- The overall structure for the Kubernetes cluster consists of one master node and one or more worker nodes
-- **Master node**: This node manages all the worker nodes
-    - API Server (+ Kubectl), Controller, and Scheduler are usually installed
-    - Where state of the Kubernetes cluster is saved
-- **Worker node**: This is where all the computing things happen
-    - Many pods and containers are activated according to the state of the master node
-
 ## Pod life cycle
 
 - According to the basic principle, the life cycle of the pod from creation to destroy is as follows:
