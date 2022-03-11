@@ -1,8 +1,5 @@
-$host=$1
-$port=$2
-
 $i=0; while($true)
 {
     % { $i++; write-host -NoNewline "$i $_" }
-    (Invoke-RestMethod "http://$host:$port")-replace '\n', " "
+    (Invoke-RestMethod "http://$1:$2")-replace '\n', " "
 }
