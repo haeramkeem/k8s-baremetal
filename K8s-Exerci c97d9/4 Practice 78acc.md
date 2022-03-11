@@ -11,43 +11,20 @@
 
 ## Kubectl Commands
 
-1. `kubectl get nodes`
-    - Show all information for node
-2. `kubectl get pods [ARG]`
-    - Show all information for pods
-    - `-n $NAMESPACE`: Specify the namespace for the pods → Default is the *default namespace*
-    - `-o $OPTIONS`: Specify the options
-        - `wide`: Show additional information for each pod
-    - Examples
-        
-        ```bash
-        kubectl get pods # Show pods for the default namespace
-        kubectl get pods -n kube-system # Show pods for the Kubernetes system pods
-        kubectl get pods -o wide # Show pods with additional information
-        ```
-        
-3. `kubectl create $OBJECT $OBJ_NAME [ARG]`
-    - Create Kubernetes object
-    - `-f $FILEPATH`: Specify the path of the *object spec file (YAML, JSON)*
-        - With this option, u don’t have to specify the `$OBJECT`
-    - `--image=$IMAGE`: Specify the image of the object’s container instead of *object spec file*
-        - However, u can’t create a pod with this option; U have to use *object spec file* if u wanna make only a pod
-        - If u wanna make only one pod with a specified image, use `run` method described below
-        - U **MUST** specify the workload object instead of only one pod if u wanna use this option
-    - Examples
-        
-        ```bash
-        kubectl create deployment dpy-nginx --image=nginx # Create deployment with nginx image
-        kubectl create -f nginx-pod.yaml # Create nginx pod with object spec file
-        ```
-        
-4. `kubectl run $POD_NAME [ARG]`
-    - This is how to make a pod with no *object spec file*
-    - `--image=$IMAGE`: Specify the image of the pod
-    - Examples
-        
-        ```bash
-        kubectl run nginx-pod --image=nginx # Create nginx pod with a specified image
-        ```
-        
-5.
+[1. Get available nodes and objects](4%20Practice%2078acc/1%20Get%20avai%2021497.md)
+
+[2. Create an object](4%20Practice%2078acc/2%20Create%20a%2068dc4.md)
+
+[3. Modify an object](4%20Practice%2078acc/3%20Modify%20a%20d9c60.md)
+
+[4. Delete & Exec an object](4%20Practice%2078acc/4%20Delete%20&%2014228.md)
+
+[5. Disabling scheduling](4%20Practice%2078acc/5%20Disablin%2083f9f.md)
+
+[6. Emptying a node](4%20Practice%2078acc/6%20Emptying%203ec8d.md)
+
+[7. How to track history, update a pod, and rollback to prev state](4%20Practice%2078acc/7%20How%20to%20t%2051a36.md)
+
+[8. NodePort](4%20Practice%2078acc/8%20NodePort%20f5021.md)
+
+[9. Ingress](4%20Practice%2078acc/9%20Ingress%203b4dd.md)
