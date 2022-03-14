@@ -9,42 +9,42 @@
 kubectl create deployment in-hname-pod --image=sysnet4admin/echo-hname
 kubectl create deployment in-ip-pod --image=sysnet4admin/echo-ip
 
-# Install Ingress controller pod
+# Create Ingress controller pod and additional objects
 CONT_URL=https://raw.githubusercontent.com/haeramkeem/k8s-exercise/main/ch3/3.3.2-Ingress/ingress-nginx.yaml
 kubectl apply -f $CONT_URL
 
-# Show installation result
+# Show creation result
 echo "----- INGRESS CONTROLLER POD -----"
 kubectl get pods -n ingress-nginx
 echo ""
 
-# Install Ingress configuration
+# Create Ingress object
 ING_URL=https://raw.githubusercontent.com/haeramkeem/k8s-exercise/main/ch3/3.3.2-Ingress/ingress-config.yaml
 kubectl apply -f $ING_URL
 
-# Show configuration result
+# Show creation result
 echo "----- INGRESS CONFIGURATION RESULT -----"
 kubectl get ingress
 echo ""
 
-# Expose Ingress
+# Expose Ingress with NodePort
 kubectl apply -f https://raw.githubusercontent.com/haeramkeem/k8s-exercise/main/ch3/3.3.2-Ingress/ingress.yaml
 
-# Show Ingress NodePort
+# Show Exposure result
 echo "----- INGRESS SERVICE -----"
 kubectl get services -n ingress-nginx
 echo ""
 
-# Expose Deployment
+# Expose Deployment with Cluster-IP
 kubectl expose deployment in-hname-pod --name=hname-svc-default --port=80,443
 kubectl expose deployment in-ip-pod --name=ip-svc --port=80,443
 
-# Show Deployment NodePort
+# Show Exposure result
 echo "----- DEPLOYMENT SERVICE -----"
 kubectl get services
 echo ""
 
-# Wait 1 minute before testing
+# Wait 1 minute before testing to finish setup
 echo "Wait 1 minute before testing..."
 sleep 1m
 
