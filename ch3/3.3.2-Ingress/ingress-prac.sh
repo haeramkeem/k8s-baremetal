@@ -41,6 +41,7 @@ kubectl get services
 echo ""
 
 # Wait 1 minute before testing
+echo "Wait 1 minute before testing..."
 sleep 1m
 
 # Test Ingress
@@ -50,16 +51,16 @@ HTTPS_PORT=30101
 
 echo "----- HTTP INGRESS TEST -----"
 echo "Request for Default URL Path"
-curl $NODEIP:$HTTP_PORT
+curl http://$NODEIP:$HTTP_PORT
 echo "Request for /ip"
-curl $NODEIP:$HTTP_PORT/ip
+curl http://$NODEIP:$HTTP_PORT/ip
 echo ""
 
 echo "----- HTTPS INGRESS TEST -----"
 echo "Request for Default URL Path"
-curl $NODEIP:$HTTPS_PORT
+curl -k https://$NODEIP:$HTTPS_PORT
 echo "Request for /ip"
-curl $NODEIP:$HTTPS_PORT/ip
+curl -k https://$NODEIP:$HTTPS_PORT/ip
 echo ""
 
 # Cleanup
