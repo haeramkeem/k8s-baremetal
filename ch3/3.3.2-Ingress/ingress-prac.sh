@@ -40,6 +40,9 @@ echo "----- DEPLOYMENT SERVICE -----"
 kubectl get services
 echo ""
 
+# Wait 1 minute before testing
+sleep 1m
+
 # Test Ingress
 NODEIP=$(kubectl get node node01 -o=jsonpath='{.status.addresses[0].address}')
 HTTP_PORT=30100
@@ -66,5 +69,4 @@ kubectl delete service hname-svc-default
 kubectl delete service ip-svc
 kubectl delete -f ingress-nginx.yaml
 kubectl delete -f ingress-config.yaml
-kubectl delete -f ingress.yaml
 rm -rf *.yaml
