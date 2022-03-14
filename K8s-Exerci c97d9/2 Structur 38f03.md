@@ -1,8 +1,10 @@
 # 2. Structure and Concepts
 
-## Basic structure
+# Basic structure
 
-![structure.PNG](2%20Structur%2038f03/structure.png)
+![Source: Kubernetes official documentation](2%20Structur%2038f03/structure.png)
+
+Source: Kubernetes official documentation
 
 - **Worker Node** (or just **Node**) is a worker machine for the Kubernetes cluster
     - Each container is running on this machine
@@ -42,16 +44,19 @@
     - Watches for newly created pods with no assigned node, and selects a node for them to run on
     - In other words, **Scheduler** allocates pods to the node
 - Kubernetes Controller Manager (c-m)
-    - Explained in `Concepts` chapter
+    - Kubernetes Controller Manager integrates the controllers for Kubernetes’s objects
+    - The concept of *controller* is explained in `Concepts` chapter
 - Cloud Controller Manager (c-c-m)
     - When the Kubernetes cluster is running on the cloud, **Cloud Controller Manager** controls the feature that the cloud supports
     - For example, *Node controller* checks cloud instance-based nodes to determine if the node is alive
     - *Route controller* controls the route for cloud
     - *Service controller* controls the load balancer that the cloud provider supports
 
-## Concepts
+---
 
-### Object
+# Concepts
+
+## Object
 
 - **Kubernetes Objects** are persistent entities in the Kubernetes system
 - Kubernetes uses objects to represent the state of your cluster
@@ -96,12 +101,12 @@
     - **Service** is kinda *load balancer*, *gateway* to the outside
     - **Service** updates the connection when a pod is replaced (i.e. updating the IP address of the existing pod)
 
-### Workload
+### Workload, Workload Resource, Controller, PodTemplate
 
 - A **Workload** is an application running on Kubernetes
     - Understanding the concept of **Workload** is very sucks
     - So, just think about it as *Application*
-- And **Workload Resources** are like a group of objects (usually pods) for running the application
+- And **Workload Resources** are like a group of objects (mostly pods) for running the application
     - To manage a set of pods more efficiently and easily, u don’t have to manage each pod on ur own
     - Instead, u can use **Workload Resources** to manage them
     - And watching and managing each workload resource is what **Controller** does
@@ -116,8 +121,14 @@
     - To deal with some cases like traffic issues, The copy of the pods are included in one Workload Resources; These copies are called **Replica**
     - Thus, **ReplicaSet** is a group of **Replica**s
     - But **ReplicaSet** only ensures the number of the pods included; **Deployment** is kinda wrapper for **ReplicaSet** to support more feature
-    - The main characteristic of the **Deployment** and **ReplicaSet** is *Stateless*. That is, they don’t rely on the state → They say Database is one example for the state-relying application → I think *state* is kinda external volume in this context
+    - The main characteristic of the **Deployment** and **ReplicaSet** is *Stateless*. That is, they don’t rely on the state → They say Database is one example for the state-relying application → I think the *state* is kinda additional volume in this context
 2. **StatefulSet**
     - Unlike Deployment and ReplicaSet, **StatefulSet** rely on the *state* (external volume)
 3. **DaemonSet**
-    - **Daemon** is a pod that runs
+    - **Daemon** is a pod that runs on every node (of course, that node has to be matched with *object spec* of **DaemonSet**), and only one per a node
+    - **DaemonSet** is a group of these daemon pods
+    - Thus, when a node is added to the cluster, (and if that node is matched to the *object spec* of **DaemonSet**), *kube-scheduler* schedules a copy of the pod to the node
+4. **Job (+ Cron Job)**
+    - **Job** refers to a group of pods that is terminated after execution
+    - So, unlike other workload resources, the pods of a **Job** are executed only once
+    - And the **Cron Job** is one kind of Job, but it is executed based on time-schedule
