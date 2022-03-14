@@ -1,5 +1,10 @@
 #!/bin/bash
 
+#################################################################################
+# This practice is based on sysnet4admin/_Book_k8sInfra                         #
+# Testing environment: https://www.katacoda.com/courses/kubernetes/playground   #
+#################################################################################
+
 # Create 2 deployment for testing
 kubectl create deployment in-hname-pod --image=sysnet4admin/echo-hname
 kubectl create deployment in-ip-pod --image=sysnet4admin/echo-ip
