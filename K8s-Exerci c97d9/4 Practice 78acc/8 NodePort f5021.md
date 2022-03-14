@@ -1,4 +1,6 @@
-# 8. NodePort
+# 8. NodePort, Services
+
+# NodePort
 
 ![Source: [https://www.docker.com/blog/designing-your-first-application-kubernetes-communication-services-part3/kubernetes-nodeport-service/](https://www.docker.com/blog/designing-your-first-application-kubernetes-communication-services-part3/kubernetes-nodeport-service/)](8%20NodePort%20f5021/Untitled.png)
 
@@ -11,6 +13,19 @@ Source: [https://www.docker.com/blog/designing-your-first-application-kubernetes
     - An IP address for `node01` is `192.168.2.10` and that for `node02` is `192.168.2.11`
     - NGINX pod is running on each node → and the opened port `30000` is linked to NGINX’s port (80)
     - When the user accesses `192.168.2.10:30000`, all the requests are forwarded to **NodePort** by *KubeProxy***,** and **NodePort** forwards them to the `node01` or `node02` with `80` port
+
+# Practice
+
+## Kubectl command for services
+
+1. `kubectl get services`
+    - Show all information for services
+    - Examples
+        
+        ```bash
+        kubectl get services # Show services
+        ```
+        
 
 ## Create NodePort object
 
@@ -40,7 +55,7 @@ Source: [https://www.docker.com/blog/designing-your-first-application-kubernetes
         - `--type=$SERVICE_TYPE`: Type of the service, to make **NodePort** object, specify it as `--type=NodePort`
         - `--name=$SERVICE_NAME`: Name of the service
         - `--port=$PRIVATE_PORT`: Specify a private (internal) port
-    - (CAUTION) with `expose` command, u can’t specify the public (external) port → It’s assigned randomly
+    - (CAUTION) with `expose` command, u can’t set the public (external) port → It’s assigned randomly
     - Examples
         
         ```bash

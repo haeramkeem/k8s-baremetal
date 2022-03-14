@@ -2,7 +2,7 @@
 
 1. `kubectl create $OBJECT $OBJ_NAME [$ARGS]`
     - Create Kubernetes object
-    - `-f $FILEPATH`: Specify the path of the *object spec file (YAML, JSON)*
+    - `-f $FILEPATH`: Specify the path of the *object spec file (YAML, JSON or URL)*
         - With this option, u don’t have to specify the `$OBJECT`
     - `--image=$IMAGE`: Specify the image of the object’s container instead of *object spec file*
         - However, u can’t create a pod with this option; U have to use *object spec file* if u wanna make only a pod
