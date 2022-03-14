@@ -29,8 +29,7 @@ echo ""
 
 # Create ConfigMap for MetalLB
 echo "----- METALLB CONFIGMAP -----"
-CONFIG_URL=https://raw.githubusercontent.com/haeramkeem/k8s-exercise/main/ch3/3.3.4-LoadBalancer/metallb-l2config.yaml
-kubectl apply -f $CONFIG_URL
+kubectl apply -f https://raw.githubusercontent.com/haeramkeem/k8s-exercise/main/ch3/3.3.4-LoadBalancer/metallb-l2config.yaml
 
 # Show creation result
 kubectl get configmap -n metallb-system
@@ -55,8 +54,8 @@ HNAME_EIP=$(kubectl get service lb-hname-svc -o=jsonpath='{.status.loadBalancer.
 IP_EIP=$(kubectl get service lb-ip-svc -o=jsonpath='{.status.loadBalancer.ingress[0].ip}')
 
 echo "----- BALANCING DEPLOYMENT TEST -----"
-echo -s "Request to 'lb-hname-svc': $(curl $HNAME_EIP)"
-echo -s "Request to 'lb-ip-svc': $(curl $IP_EIP)"
+echo "Request to 'lb-hname-svc': $(curl -s $HNAME_EIP)"
+echo "Request to 'lb-ip-svc': $(curl -s $IP_EIP)"
 echo ""
 
 echo "----- BALANCING POD TEST -----"
@@ -72,4 +71,3 @@ kubectl delete deployment lb-ip-pods
 kubectl delete service lb-hname-svc
 kubectl delete service lb-ip-svc
 kubectl delete -f $METALLB_URL
-kubectl delete -f $CONFIG_URL
