@@ -10,8 +10,8 @@ kubectl create deployment in-hname-pod --image=sysnet4admin/echo-hname
 kubectl create deployment in-ip-pod --image=sysnet4admin/echo-ip
 
 # Install Ingress controller pod
-curl --silent https://raw.githubusercontent.com/haeramkeem/k8s-exercise/main/ch3/3.3.2-Ingress/ingress-nginx.yaml > ingress-nginx.yaml
-kubectl apply -f ./ingress-nginx.yaml
+CONT_URL=https://raw.githubusercontent.com/haeramkeem/k8s-exercise/main/ch3/3.3.2-Ingress/ingress-nginx.yaml
+kubectl apply -f $CONT_URL
 
 # Show installation result
 echo "----- INGRESS CONTROLLER POD -----"
@@ -19,8 +19,8 @@ kubectl get pods -n ingress-nginx
 echo ""
 
 # Install Ingress configuration
-curl --silent https://raw.githubusercontent.com/haeramkeem/k8s-exercise/main/ch3/3.3.2-Ingress/ingress-config.yaml > ingress-config.yaml
-kubectl apply -f ./ingress-config.yaml
+ING_URL=https://raw.githubusercontent.com/haeramkeem/k8s-exercise/main/ch3/3.3.2-Ingress/ingress-config.yaml
+kubectl apply -f $ING_URL
 
 # Show configuration result
 echo "----- INGRESS CONFIGURATION RESULT -----"
@@ -28,8 +28,7 @@ kubectl get ingress
 echo ""
 
 # Expose Ingress
-curl --silent https://raw.githubusercontent.com/haeramkeem/k8s-exercise/main/ch3/3.3.2-Ingress/ingress.yaml > ingress.yaml
-kubectl apply -f ./ingress.yaml
+kubectl apply -f https://raw.githubusercontent.com/haeramkeem/k8s-exercise/main/ch3/3.3.2-Ingress/ingress.yaml
 
 # Show Ingress NodePort
 echo "----- INGRESS SERVICE -----"
@@ -73,6 +72,5 @@ kubectl delete deployment in-hname-pod
 kubectl delete deployment in-ip-pod
 kubectl delete service hname-svc-default
 kubectl delete service ip-svc
-kubectl delete -f ingress-nginx.yaml
-kubectl delete -f ingress-config.yaml
-rm -rf *.yaml
+kubectl delete -f $CONT_URL
+kubectl delete -f $ING_URL
