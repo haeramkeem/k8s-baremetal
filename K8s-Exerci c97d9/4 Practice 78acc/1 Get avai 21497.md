@@ -13,6 +13,7 @@
         
 2. `kubectl get pods`
     - Show all information for pods
+    - `-w`: Watch → Track and print the differences like `tail -f`
     - `-n $NAMESPACE`: Specify the namespace for the pods → Default is the *default namespace*
     - `-o $OUTFORM`: Specify the form of output
         - `wide`: Show additional information for each pod
