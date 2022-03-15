@@ -21,3 +21,4 @@ kubectl apply -f https://raw.githubusercontent.com/haeramkeem/k8s-exercise/main/
 # Show creation result
 kubectl get configmap -n metallb-system
 echo ""
+echo "INSTALLATION DONE"
