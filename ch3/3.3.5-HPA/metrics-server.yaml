@@ -119,7 +119,6 @@ spec:
       nodeSelector:
         beta.kubernetes.io/os: linux
         kubernetes.io/arch: "amd64"
-      hostNetwork: true
 
 #metrics-server-service.yaml
 ---
