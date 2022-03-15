@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: hpa-echo-hname
+  name: hpa-hname-pods
   labels:
     app: nginx
 spec:
