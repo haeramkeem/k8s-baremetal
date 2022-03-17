@@ -12,7 +12,7 @@
 
 - See .sh file to figure out the demo:
     
-    [k8s-exercise/configmap-demo.sh at main · haeramkeem/k8s-exercise](https://github.com/haeramkeem/k8s-exercise/blob/main/ch3/3.4.2-ConfigMap/configmap-demo.sh)
+    https://github.com/haeramkeem/k8s-exercise/blob/f0cd932d19902cca5177f147373e63e8baac75f0/ch3/3.4.2-ConfigMap/configmap-demo.sh
     
 - Live demo:
     
