@@ -35,14 +35,6 @@
     - In this object spec file, additional flags are added when comparing with the original release code
     - `--kubelet-insecure-tls`: Allow unsafe communication for TLS
     - `--kubelet-prefered-address-types=InternalIP`: Let kubelet use InternalIP firstly
-    
-    ```bash
-    kubectl get pods -o=custom-columns=\
-    NAME:.metadata.name,\
-    REQ:.spec.containers[0].resources.requests.cpu,\
-    LIMITS:.spec.containers[0].resources.limits.cpu
-    ```
-    
 
 ## Demo
 

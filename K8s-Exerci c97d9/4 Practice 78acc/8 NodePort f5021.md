@@ -26,6 +26,18 @@ Source: [https://www.docker.com/blog/designing-your-first-application-kubernetes
         kubectl get services # Show services
         ```
         
+2. `kubectl expose $OBJECT $OBJECT_NAME [$ARGS]`
+    - Attach service to the object to expose it
+    - `--type=$SERVICE_TYPE`: Type of the service, to make **NodePort** object, specify it as `--type=NodePort`
+    - `--name=$SERVICE_NAME`: Name of the service
+    - `--port=$PRIVATE_PORT`: Specify a private (internal) port
+    - (CAUTION) with `expose` command, u can’t set the public (external) port → It’s assigned randomly
+    - Examples
+        
+        ```bash
+        kubectl expose deployment dpy-nginx --type=NodePort --name=np-svc --port=80 # Link deployment "dpy-nginx" with NodePort
+        ```
+        
 
 ## Create NodePort object
 
@@ -50,11 +62,7 @@ Source: [https://www.docker.com/blog/designing-your-first-application-kubernetes
         ```
         
     - Create object: `kubectl create -f $SERVICE_OBJ_FILEPATH`
-2. By `expose` command
-    - `kubectl expose $OBJECT $OBJECT_NAME [$ARGS]`
-        - `--type=$SERVICE_TYPE`: Type of the service, to make **NodePort** object, specify it as `--type=NodePort`
-        - `--name=$SERVICE_NAME`: Name of the service
-        - `--port=$PRIVATE_PORT`: Specify a private (internal) port
+2. Using `kubectl expose`
     - (CAUTION) with `expose` command, u can’t set the public (external) port → It’s assigned randomly
     - Examples
         

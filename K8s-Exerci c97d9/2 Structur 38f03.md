@@ -27,6 +27,8 @@ Source: Kubernetes official documentation
 - Container Runtime Interface (CRI)
     - The container runtime is the software that is responsible for running containers
     - `Docker` is a one example
+- Kube-proxy
+    - This process runs to ensure communication between inside and outside of the node
 
 ## Control Plane Components
 
@@ -37,8 +39,7 @@ Source: Kubernetes official documentation
     - So, u can think of it as an interface that provides controlling the Kubernetes cluster → The API server is the front end for the Kubernetes control plane
 - etcd
     - Kubernetes’s backing storage for all cluster data
-    - Mainly cooperates with *API Server*
-    - That is, it cooperates with *API Server* to keep track of  nodes & pods state
+    - Mainly cooperates with *API Server* to keep track of  nodes & pods state
     - Stores data in a *key-value* way
 - Scheduler (kube-scheduler)
     - Watches for newly created pods with no assigned node, and selects a node for them to run on
@@ -59,6 +60,9 @@ Source: Kubernetes official documentation
 ## Object
 
 - **Kubernetes Objects** are persistent entities in the Kubernetes system
+    - The expression *persistent entities* do not mean that the object can’t be destroyed
+    - It means the object can be destroyed and it happens quite often, but every time an object is destroyed that object is recreated
+    - So, the object which u specified always exists, but it doesn’t have to be the same object as the first creation
 - Kubernetes uses objects to represent the state of your cluster
 - And almost every object has two nested fields: `spec` and `status`
 - `spec` is the *desired state*: u have to specify it when u creates the object
@@ -73,17 +77,25 @@ Source: Kubernetes official documentation
 1. Pod
     - Group of one or more Docker containers with shared namespaces, shared filesystem volumes, and a specification for how to run the containers
     - Smallest deployable units of computing that you can create and manage in Kubernetes
+    - Integrate one or more application containers that are relatively tightly coupled to serve a single cohesive (closely united) unit of service - “Logical Host”
+    - Kubernetes does not directly manage the container; It controls the **pod** instead of each container
+        - This is why Kubernetes manages **Pods** instead of containers (my personal opinion):
+            - Organizing all the processes which are needed to run a service in one container is inefficient
+            - Cuz running environment of each process is deployed as the IaaS
+            - So instead of using the container as a deployable service unit, organizing multiple containers is much more effective way to accomplish it
+            - Think about it this way:
+                - When u create a microservice (like a sign-in service), installing the database, HTTP server, etc to one container is very inefficient
+                - Using and utilizing a database container, an HTTP server container, etc is much simpler way to organize ur microservice
+            - Thus (i think) integrating one or more containers to a *Pod* and making communication of the *Pod*’s containers easier are a better way to organize microservice
     - When a pod consists of a single container, u can think of it as a **wrapper of a container**
-        - Integrate one or more application containers that are relatively tightly coupled to serve a single cohesive (closely united) unit of service - “Logical Host”
     - And when a pod consists of multiple containers, it is kinda **capsule of the containers**
         - These containers are co-located on a single “Node”
         - And they are co-managed by the system
         - Also, they are activated in a synchronized way → This is called *co-scheduling*
         - The containers can share resources and dependencies, communicate with one another, and coordinate when and how they are terminated
+        - Along with the application containers, *init container* and *ephemeral (temporary) container → for debugging* can be integrated into the pod
         - Example for multi-container pod
             - One container serves data stored in a shared volume to the public, while a separate *sidecar* container refreshes or updates those files. The Pod wraps these containers, storage resources, and an ephemeral network identity together as a single unit.
-        - Along with the application containers, *init container* and *ephemeral (temporary) container → for debugging* can be integrated into the pod
-        - Kubernetes does not directly manage the container; It controls the **pod** instead of each container
     - Think about pods this way: Most of the pods are just wapping a container, but not all pods does that
     - A Pod is just a logical thing → the concept of “wrapper” of the container makes u feel like a Pod is stored in the worker node (in the logical perspective, it’s correct), but a Pod is stored in a master node in physical perspective
         - But u can think that a Pod is stored in the worker node → It doesn’t matter where a pod is stored physically
@@ -93,6 +105,8 @@ Source: Kubernetes official documentation
         - But, **Namespace** is just logical isolation; It’s quite different from physical isolation in several ways, such as *security perspective*
     - By default, all the resources have *default namespace*
     - But other namespaces are exists in Kubernetes, such as *kube-system*, which is a group of pods related to the Kubernetes system
+    - All the names in the namespace have to be unique; but they don’t have to be unique across the namespaces
+    - U can only set a namespace to the *namespaced objects* (such as Deployments, Services, *etc*) → U can’t set a namespace to the *cluster-wide objects* (such as Node, *etc*)
 3. Volume
     - **Volume** provides the filesystem directory for each pod
     - By default, *temporary* volume is assigned to each pod
@@ -124,6 +138,8 @@ Source: Kubernetes official documentation
     - The main characteristic of the **Deployment** and **ReplicaSet** is *Stateless*. That is, they don’t rely on the state → They say Database is one example for the state-relying application → I think the *state* is kinda additional volume in this context
 2. **StatefulSet**
     - Unlike Deployment and ReplicaSet, **StatefulSet** rely on the *state* (external volume)
+    - So, when the pods inside of the deployment are replaced, they are started with the *clean state*, that is, the initial state with empty data
+    - But when some pods need to remain the previous data, they are bounded with *persistent volume* and this kind of pods can be easily created by creating **StatefulSet**
 3. **DaemonSet**
     - **Daemon** is a pod that runs on every node (of course, that node has to be matched with *object spec* of **DaemonSet**), and only one per a node
     - **DaemonSet** is a group of these daemon pods
