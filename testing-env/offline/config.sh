@@ -11,6 +11,10 @@ git config --global user.name ewqdsacxz2345@gmail.com
 git clone https://github.com/haeramkeem/k8s-exercise.git
 mv k8s-exercise ~/.
 
+# docker repo
+yum-config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
+yum-config-manager --enable docker-ce-nightly
+
 # kubernetes repo
 gg_pkg="packages.cloud.google.com/yum/doc" # Due to shorten addr for key
 cat <<EOF > /etc/yum.repos.d/kubernetes.repo
@@ -22,4 +26,7 @@ gpgcheck=0
 repo_gpgcheck=0
 gpgkey=https://${gg_pkg}/yum-key.gpg https://${gg_pkg}/rpm-package-key.gpg
 EOF
+
+# Recreate cache
 yum makecache fast
+

@@ -5,4 +5,3 @@ yum install epel-release -y
 yum install vim-enhanced -y
 yum install git -y
 
-
