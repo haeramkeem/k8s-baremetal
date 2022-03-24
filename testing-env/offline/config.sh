@@ -5,12 +5,6 @@ echo 'alias vi=vim' >> /etc/profile
 rm -rf ~/.vimrc
 curl https://raw.githubusercontent.com/haeramkeem/rcs/main/.min.vimrc > ~/.vimrc
 
-# git configuration
-git config --global user.name haeramkeem
-git config --global user.name ewqdsacxz2345@gmail.com
-git clone https://github.com/haeramkeem/k8s-exercise.git
-mv k8s-exercise ~/.
-
 # docker repo
 yum-config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
 yum-config-manager --enable docker-ce-nightly
@@ -32,5 +26,6 @@ yum makecache fast
 
 # Prepare downloading dependancies
 mkdir ~/dest
+mkdir ~/dest/manifests
 mkdir ~/dest/yums
 mkdir ~/dest/images
