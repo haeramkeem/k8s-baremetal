@@ -30,3 +30,7 @@ EOF
 # Recreate cache
 yum makecache fast
 
+# Prepare downloading dependancies
+mkdir ~/dest
+mkdir ~/dest/yums
+mkdir ~/dest/images
