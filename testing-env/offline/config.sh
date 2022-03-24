@@ -27,5 +27,5 @@ yum makecache fast
 # Prepare downloading dependancies
 mkdir ~/dest
 mkdir ~/dest/manifests
-mkdir ~/dest/yums
+mkdir ~/dest/rpms
 mkdir ~/dest/images

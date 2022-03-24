@@ -2,8 +2,8 @@
 
 echo "----- DOWNLOADING K8S -----"
 yumdownloader --resolve kubelet kubeadm kubectl
-tar cvzf ~/dest/yums/k8s.tar.gz *.rpm
-rm -rf *.rpm
+mkdir ~/dest/rpms/k8s
+mv ./*.rpm ~/dest/rpms/k8s/.
 echo "Kubernetes package (kubelet, kubeadm, kubectl) are saved to '~/dest/yums/k8s.tar.gz'"
 
 echo "----- DOWNLOADING K8S IMAGES -----"
@@ -32,4 +32,6 @@ cp ./images/* ~/dest/images/.
 echo "calico related docker image are saved to '~/dest/images/*'"
 sed -i 's/docker.io\///g' ./manifests/calico.yaml
 cp ./manifests/* ~/dest/manifests/.
+cd ..
+rm -rf ./release-v3.22.1.tgz ./release-v3.22.1
 echo "calico manifests are saved to '~/dest/manifests/*'"
