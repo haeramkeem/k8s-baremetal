@@ -5,11 +5,15 @@ ip:
   w2-k8s: 192.168.1.102
   w3-k8s: 192.168.1.103
 kubernetes:
+  kubernetes: v1.23.5
+  kubectl: v1.23.5
+  kubelet: v1.23.5
+  kubeadm: v1.23.5
   kube-apiserver: v1.23.5
   kube-controller-manager: v1.23.5
   kube-scheduler: v1.23.5
   kube-proxy: v1.23.5
   pause: 3.6
   etcd: 3.5.1-0
-  coredns/coredns: v1.8.6
+  coredns: v1.8.6
 calico: v3.22.1

@@ -22,15 +22,15 @@ Vagrant.configure("2") do |config|
       end
 
       # Network settings
-      cfg.vm.network "forwarded_port", guest: 22, host: 60010, auto_correct: true, id: "ssh" # SSH connection
+      #   SSH connection
+      cfg.vm.network "forwarded_port", guest: 22, host: 60010, auto_correct: true, id: "ssh"
 
-      # Execute shell commands
-      cfg.vm.provision "shell", path: "install_pkg.sh"
-      cfg.vm.provision "shell", path: "config.sh"
-      cfg.vm.provision "shell", path: "install_docker.sh"
-      cfg.vm.provision "shell", path: "install_k8s.sh"
-      cfg.vm.provision "file", source: "./setup.sh", destination: "~/setup.sh"
-      cfg.vm.provision "shell", path: "cleanup.sh"
+      # Move files
+      cfg.vm.provision "file", source: "./setup", destination: "$HOME/setup"
+
+      # Make executable
+      cfg.vm.provision "shell", inline: "chmod 711 /home/vagrant/setup/*.sh"
+      cfg.vm.provision "shell", inline: "sed -i -e 's/\r$//' /home/vagrant/setup/*.sh"
     end
 
 end

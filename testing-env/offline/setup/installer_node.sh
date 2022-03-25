@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+# Check node type
+if [[ $1 = "" ]]
+then
+    echo "Please specify the node type: --master or --worker"
+    exit 1
+fi
+
 # Kubernetes requires the disabling of the partition swapping
 #   swapoff -a to disable swapping
 swapoff -a
@@ -17,7 +24,7 @@ sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
 
 # Use iptables and br_netfilter kernel module for IPv4 & IPv6 routing table
 #   RHEL/CentOS 7 have reported traffic issues being routed incorrectly due to iptables bypassed
-cat <<EOF >  /etc/sysctl.d/k8s.conf
+cat <<EOF > /etc/sysctl.d/k8s.conf
 net.bridge.bridge-nf-call-ip6tables = 1
 net.bridge.bridge-nf-call-iptables = 1
 EOF
@@ -47,9 +54,9 @@ echo "----- BEGIN K8S INSTALL -----"
 rpm -ivh --replacefiles --replacepkgs ./rpms/k8s/*.rpm
 echo "K8s installed"
 
+# config for master node only
 if [[ $1 = "--master" ]]
 then
-    # config for master node only
     # init kubernetes cluster
     kubeadm init\
         --token 123456.1234567890123456\
@@ -64,8 +71,11 @@ then
 
     # config for kubernetes's network (Calico)
     kubectl apply -f ./manifests/calico.yaml
-else
-    # config for worker nodes
+fi
+
+# config for worker nodes
+if [[ $1 = "--worker" ]]
+then
     # join kubernetes cluster
     kubeadm join\
         --token 123456.1234567890123456 \
