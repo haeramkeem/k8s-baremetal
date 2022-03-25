@@ -65,7 +65,8 @@ docker save nginx > $IMG_PATH/nginx.tar
 #########################
 
 # download kubelet, kubeadm, kubectl
-yumdownloader --resolve kubelet kubeadm kubectl
+KUBE_VERSION=$(grep "kube-version:" meta.yaml | awk '{print $2}')
+yumdownloader --resolve kubelet-$KUBE_VERSION kubeadm-$KUBE_VERSION kubectl-$KUBE_VERSION
 mkdir $RPM_PATH/k8s
 mv ./*.rpm $RPM_PATH/k8s/.
 

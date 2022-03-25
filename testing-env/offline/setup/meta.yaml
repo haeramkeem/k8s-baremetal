@@ -5,7 +5,7 @@ ip:
   w2-k8s: 192.168.1.102
   w3-k8s: 192.168.1.103
 kubernetes:
-  kubernetes: v1.23.5
+  kube-version: v1.23.5
   kubectl: v1.23.5
   kubelet: v1.23.5
   kubeadm: v1.23.5
