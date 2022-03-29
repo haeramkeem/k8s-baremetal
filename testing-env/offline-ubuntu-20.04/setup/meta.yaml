@@ -2,16 +2,20 @@
 node:
   worker-count: 3
   ip:
-    m1-k8s: 192.168.1.10
-    w1-k8s: 192.168.1.101
-    w2-k8s: 192.168.1.102
-    w3-k8s: 192.168.1.103
+    m1-k8s: 192.168.2.10
+    w1-k8s: 192.168.2.101
+    w2-k8s: 192.168.2.102
+    w3-k8s: 192.168.2.103
+docker:
+  docker-ce: 5:20.10.14~3-0~ubuntu-focal
+  docker-ce-cli: 5:20.10.14~3-0~ubuntu-focal
+  containerd-io: 1.5.11-1
 kubernetes:
   versions:
     kube-version: 1.23.5
-    kubectl: v1.23.5
-    kubelet: v1.23.5
-    kubeadm: v1.23.5
+    kubectl: 1.23.5-00
+    kubelet: 1.23.5-00
+    kubeadm: 1.23.5-00
     kube-apiserver: v1.23.5
     kube-controller-manager: v1.23.5
     kube-scheduler: v1.23.5

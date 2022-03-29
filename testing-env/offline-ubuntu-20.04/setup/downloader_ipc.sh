@@ -4,27 +4,23 @@
 #  INSTALL RELATED REPOSITORY  #
 ################################
 
-# install EPEL repo
-yum install epel-release -y
+# Install prerequisites
+apt-get update
+apt-get install ca-certificates curl gnupg lsb-release
 
-# install docker repo
-yum-config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
-yum-config-manager --enable docker-ce-nightly
+# Install docker apt repo
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+echo "deb [arch=$(dpkg --print-architecture)\
+    signed-by=/usr/share/keyrings/docker-archive-keyring.gpg]\
+    https://download.docker.com/linux/ubuntu\
+    $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
-# install kubernetes repo
-gg_pkg="packages.cloud.google.com/yum/doc" # Due to shorten addr for key
-cat <<EOF > /etc/yum.repos.d/kubernetes.repo
-[kubernetes]
-name=Kubernetes
-baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
-enabled=1
-gpgcheck=0
-repo_gpgcheck=0
-gpgkey=https://${gg_pkg}/yum-key.gpg https://${gg_pkg}/rpm-package-key.gpg
-EOF
+# Install kubernetes apt repo
+sudo curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
+echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
 
-# Recreate cache
-yum makecache fast
+# Update apt
+apt-get update
 
 ######################
 #  DESTINATION PATH  #
@@ -33,28 +29,33 @@ yum makecache fast
 # destination path variables
 DST_PATH=.
 MAN_PATH=$DST_PATH/manifests
-RPM_PATH=$DST_PATH/rpms
+DEB_PATH=$DST_PATH/debs
 IMG_PATH=$DST_PATH/images
 
 # create dir
 # mkdir $DST_PATH
 mkdir $MAN_PATH
-mkdir $RPM_PATH
+mkdir $DEB_PATH
 mkdir $IMG_PATH
 
 ##################################
 #  DOWNLOAD & INSTALL DOCKER CE  #
 ##################################
 
-# download docker ce
-yumdownloader --resolve docker-ce
-mkdir $RPM_PATH/docker
-cp ./*.rpm $RPM_PATH/docker/.
+# Download docker ce
+DOCKER_CE=$(grep "docker-ce:" meta.yaml | awk '{print $2}')
+DOCKER_CLI=$(grep "docker-ce-cli:" meta.yaml | awk '{print $2}')
+CONTAINERD=$(grep "containerd-io:" meta.yaml | awk '{print $2}')
+DOCKER_PKGS="docker-ce=$DOCKER_CE docker-ce-cli=$DOCKER_CLI containerd.io=$CONTAINERD"
+apt-get download $(apt-cache depends --recurse --no-recommends --no-suggests\
+    --no-conflicts --no-breaks --no-replaces --no-enhances\
+    --no-pre-depends ${DOCKER_PKGS} | grep "^\w")
+mkdir $DEB_PATH/docker
+mv ./*.deb $DEB_PATH/docker/.
 
 # install docker ce
-rpm -ivh --replacefiles --replacepkgs *.rpm
+dpkg -i $DEB_PATH/docker/*.deb
 systemctl enable --now docker.service
-rm -rf *.rpm
 
 # Download test docker image
 docker pull nginx
@@ -65,10 +66,15 @@ docker save nginx > $IMG_PATH/nginx.tar
 #########################
 
 # download kubelet, kubeadm, kubectl
-KUBE_VERSION=$(grep "kube-version:" meta.yaml | awk '{print $2}')
-yumdownloader --resolve kubelet-$KUBE_VERSION kubeadm-$KUBE_VERSION kubectl-$KUBE_VERSION
-mkdir $RPM_PATH/k8s
-mv ./*.rpm $RPM_PATH/k8s/.
+KUBELET=$(grep "kubelet:" meta.yaml | awk '{print $2}')
+KUBECTL=$(grep "kubectl:" meta.yaml | awk '{print $2}')
+KUBEADM=$(grep "kubeadm:" meta.yaml | awk '{print $2}')
+K8S_PKGS="kubelet=$KUBELET kubectl=$KUBECTL kubeadm=$KUBEADM"
+apt-get download $(apt-cache depends --recurse --no-recommends --no-suggests\
+    --no-conflicts --no-breaks --no-replaces --no-enhances\
+    --no-pre-depends ${K8S_PKGS} | grep "^\w")
+mkdir $DEB_PATH/k8s
+mv ./*.deb $DEB_PATH/k8s/.
 
 # download kubernetes images
 #   version variables
