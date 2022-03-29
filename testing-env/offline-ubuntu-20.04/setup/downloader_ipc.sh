@@ -130,10 +130,3 @@ rm -rf ./release-$CALICO
 # download registry:2
 docker pull registry:2
 docker save registry:2 > $IMG_PATH/registry.tar
-
-# download sshpass
-apt-get download $(apt-cache depends --recurse --no-recommends --no-suggests\
-    --no-conflicts --no-breaks --no-replaces --no-enhances\
-    --no-pre-depends sshpass | grep "^\w" | grep -v "i386")
-mkdir $DEB_PATH/sshpass
-mv ./*.deb $DEB_PATH/sshpass/.
