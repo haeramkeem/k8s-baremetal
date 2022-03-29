@@ -7,9 +7,13 @@ node:
     w2-k8s: 192.168.2.102
     w3-k8s: 192.168.2.103
 docker:
-  docker-ce: 5:20.10.14~3-0~ubuntu-focal
-  docker-ce-cli: 5:20.10.14~3-0~ubuntu-focal
-  containerd-io: 1.5.11-1
+  versions:
+    docker-ce: 5:20.10.14~3-0~ubuntu-focal
+    docker-ce-cli: 5:20.10.14~3-0~ubuntu-focal
+    containerd-io: 1.5.11-1
+  registry:
+    reg-ip: 192.168.2.10
+    reg-port: 8443
 kubernetes:
   versions:
     kube-version: 1.23.5

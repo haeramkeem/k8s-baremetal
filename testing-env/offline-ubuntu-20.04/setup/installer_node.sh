@@ -38,6 +38,7 @@ rm -rf ./debs/docker # Remove installation files
 
 #   Configure cgroup driver
 mkdir /etc/docker
+REG_IP=$(grep "reg-ip:" meta.yaml | awk '{print $2}')
 REG_PORT=$(grep "reg-port:" meta.yaml | awk '{print $2}')
 cat <<EOF > /etc/docker/daemon.json
 {
@@ -51,7 +52,7 @@ cat <<EOF > /etc/docker/daemon.json
     "overlay2.override_kernel_check=true"
   ],
   "insecure-registries": [
-    "$MASTER_IP:$REG_PORT"
+    "$REG_IP:$REG_PORT"
   ]
 }
 EOF
@@ -82,7 +83,7 @@ echo "K8s installed"
 TOKEN=$(grep "token:" meta.yaml | awk '{print $2}')
 
 # docker registry certificate path
-certs=/etc/docker/certs.d/$MASTER_IP:$REG_PORT
+certs=/etc/docker/certs.d/$REG_IP:$REG_PORT
 mkdir -p $certs
 
 # config for master node only
@@ -102,6 +103,40 @@ then
 
     # config for kubernetes's network (Calico)
     kubectl apply -f ./manifests/calico.yaml
+
+    # install docker registry
+    #   image saving dir
+    mkdir /registry-image
+    #   cert for server
+    mkdir /etc/docker/certs
+
+    #   generate cert
+    openssl req\
+        -x509\
+        -config $(dirname "$0")/tls.csr\
+        -nodes\
+        -newkey rsa:4096\
+        -keyout tls.key\
+        -out tls.crt\
+        -days 365\
+        -extensions v3_req
+
+    #   copy cert
+    cp tls.crt $certs
+    mv tls.* /etc/docker/certs
+
+    #   run registry
+    docker run -d\
+        --restart=always\
+        --name registry\
+        -v /etc/docker/certs:/docker-in-certs:ro\
+        -v /registry-image:/var/lib/registry\
+        -e REGISTRY_HTTP_ADDR=0.0.0.0:443\
+        -e REGISTRY_HTTP_TLS_CERTIFICATE=/docker-in-certs/tls.crt\
+        -e REGISTRY_HTTP_TLS_KEY=/docker-in-certs/tls.key\
+        -p $REG_PORT:443\
+        registry:2
+
 fi
 
 # config for worker nodes
@@ -111,4 +146,10 @@ then
     kubeadm join\
         --token $TOKEN\
         --discovery-token-unsafe-skip-ca-verification $MASTER_IP:6443\
+
+    # get docker registry cert
+    #   use openssl for fetching registry cert
+    openssl s_client -showcerts -connect $REG_IP:$REG_PORT\
+        </dev/null 2>/dev/null|openssl x509 -outform PEM >$certs/tls.crt
+
 fi
