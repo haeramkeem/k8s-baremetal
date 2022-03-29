@@ -46,7 +46,7 @@ rpm -ivh --replacefiles --replacepkgs ./rpms/docker/*.rpm
 rm -fr ./rpms/docker # Remove installation files 
 
 #   Configure cgroup driver and insecure docker registry
-REG_PORT=$(grep "registry-port:" meta.yaml | awk '{print $2}')
+REG_PORT=$(grep "reg-port:" meta.yaml | awk '{print $2}')
 mkdir /etc/docker
 cat <<EOF > /etc/docker/daemon.json
 {

@@ -9,7 +9,6 @@ yum install epel-release -y
 
 # install docker repo
 yum-config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
-# yum-config-manager --enable docker-ce-nightly
 
 # install kubernetes repo
 gg_pkg="packages.cloud.google.com/yum/doc" # Due to shorten addr for key
@@ -47,7 +46,10 @@ mkdir $IMG_PATH
 ##################################
 
 # download docker ce
-yumdownloader --resolve docker-ce
+DOCKER_CE=$(grep "docker-ce:" meta.yaml | awk '{print $2}')
+DOCKER_CLI=$(grep "docker-ce-cli:" meta.yaml | awk '{print $2}')
+CONTAINERD=$(grep "containerd-io:" meta.yaml | awk '{print $2}')
+yumdownloader --resolve docker-ce-$DOCKER_CE docker-ce-cli-$DOCKER_CLI containerd.io-$CONTAINERD
 mkdir $RPM_PATH/docker
 cp ./*.rpm $RPM_PATH/docker/.
 

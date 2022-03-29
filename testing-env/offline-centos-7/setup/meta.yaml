@@ -8,10 +8,12 @@ node:
     w3-k8s: 192.168.1.103
 docker:
   versions:
-    docker-ce:
-    docker-ce-cli:
+    docker-ce: 20.10.9
+    docker-ce-cli: 20.10.9
+    containerd-io: 1.5.11
   registry:
-    registry-port: 8443
+    reg-ip: 192.168.1.10
+    reg-port: 8443
 kubernetes:
   versions:
     kube-version: 1.23.5
