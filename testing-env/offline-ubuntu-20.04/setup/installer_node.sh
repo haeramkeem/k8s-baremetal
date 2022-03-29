@@ -56,7 +56,11 @@ cat <<EOF > /etc/docker/daemon.json
 }
 EOF
 
-systemctl enable --now docker.service
+#   installing docker with .deb automatically starts the docker
+#       thus, reloading docker after write a daemon.json file is required
+#       the command `systemctl enable --now docker.service` would not load this configuration
+systemctl daemon-reload
+systemctl restart docker
 echo "Docker installed"
 
 # Load all images
