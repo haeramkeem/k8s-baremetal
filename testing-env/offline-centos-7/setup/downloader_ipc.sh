@@ -126,8 +126,3 @@ rm -rf ./release-$CALICO
 # download registry:2
 docker pull registry:2
 docker save registry:2 > $IMG_PATH/registry.tar
-
-# download sshpass
-yumdownloader --resolve sshpass
-mkdir $RPM_PATH/sshpass
-mv ./*.rpm $RPM_PATH/sshpass/.

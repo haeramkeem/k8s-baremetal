@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Check node type
-if [[ $1 = "" ]]
+if [[ $1 != "--master" ]] && [[ $1 != "--worker" ]]
 then
     echo "Please specify the node type: --master or --worker"
     exit 1
@@ -46,6 +46,7 @@ rpm -ivh --replacefiles --replacepkgs ./rpms/docker/*.rpm
 rm -fr ./rpms/docker # Remove installation files 
 
 #   Configure cgroup driver and insecure docker registry
+REG_IP=$(grep "reg-ip:" meta.yaml | awk '{print $2}')
 REG_PORT=$(grep "reg-port:" meta.yaml | awk '{print $2}')
 mkdir /etc/docker
 cat <<EOF > /etc/docker/daemon.json
@@ -60,7 +61,7 @@ cat <<EOF > /etc/docker/daemon.json
     "overlay2.override_kernel_check=true"
   ],
   "insecure-registries": [
-    "$MASTER_IP:$REG_PORT"
+    "$REG_IP:$REG_PORT"
   ]
 }
 EOF
@@ -88,7 +89,7 @@ echo "K8s installed"
 TOKEN=$(grep "token:" meta.yaml | awk '{print $2}')
 
 # docker registry certificate path
-certs=/etc/docker/certs.d/$MASTER_IP:$REG_PORT
+certs=/etc/docker/certs.d/$REG_IP:$REG_PORT
 mkdir -p $certs
 
 # config for master node only
@@ -99,11 +100,10 @@ then
     firewall-cmd --reload
 
     # init kubernetes cluster
-    CIDR=$(grep "cidr:" meta.yaml | awk '{print $2}')
     kubeadm init\
         --token $TOKEN\
         --token-ttl 0 \
-        --pod-network-cidr=$CIDR\
+        --pod-network-cidr=$(grep "cidr:" meta.yaml | awk '{print $2}')\
         --apiserver-advertise-address=$MASTER_IP
 
     # copy configuration
@@ -136,16 +136,16 @@ then
     mv tls.* /etc/docker/certs
 
     #   run registry
-    docker run -d \
-      --restart=always \
-      --name registry \
-      -v /etc/docker/certs:/docker-in-certs:ro \
-      -v /registry-image:/var/lib/registry \
-      -e REGISTRY_HTTP_ADDR=0.0.0.0:443 \
-      -e REGISTRY_HTTP_TLS_CERTIFICATE=/docker-in-certs/tls.crt \
-      -e REGISTRY_HTTP_TLS_KEY=/docker-in-certs/tls.key \
-      -p $REG_PORT:443 \
-      registry:2
+    docker run -d\
+        --restart=always\
+        --name registry\
+        -v /etc/docker/certs:/docker-in-certs:ro\
+        -v /registry-image:/var/lib/registry\
+        -e REGISTRY_HTTP_ADDR=0.0.0.0:443\
+        -e REGISTRY_HTTP_TLS_CERTIFICATE=/docker-in-certs/tls.crt\
+        -e REGISTRY_HTTP_TLS_KEY=/docker-in-certs/tls.key\
+        -p $REG_PORT:443\
+        registry:2
 
 fi
 
@@ -162,7 +162,8 @@ then
         --discovery-token-unsafe-skip-ca-verification $MASTER_IP:6443\
 
     # get docker registry cert
-    rpm -ivh --replacefiles --replacepkgs ./rpms/sshpass/*.rpm
-    sshpass -p toor scp root@$MASTER_IP:$certs/tls.crt $certs/.
+    #   use openssl for fetching registry cert
+    openssl s_client -showcerts -connect $REG_IP:$REG_PORT\
+        </dev/null 2>/dev/null|openssl x509 -outform PEM >$certs/tls.crt
 
 fi
