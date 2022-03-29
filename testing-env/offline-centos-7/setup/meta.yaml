@@ -6,6 +6,12 @@ node:
     w1-k8s: 192.168.1.101
     w2-k8s: 192.168.1.102
     w3-k8s: 192.168.1.103
+docker:
+  versions:
+    docker-ce:
+    docker-ce-cli:
+  registry:
+    registry-port: 8443
 kubernetes:
   versions:
     kube-version: 1.23.5

@@ -9,7 +9,7 @@ yum install epel-release -y
 
 # install docker repo
 yum-config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
-yum-config-manager --enable docker-ce-nightly
+# yum-config-manager --enable docker-ce-nightly
 
 # install kubernetes repo
 gg_pkg="packages.cloud.google.com/yum/doc" # Due to shorten addr for key
@@ -116,3 +116,16 @@ cp ./release-$CALICO/images/* $IMG_PATH/.
 sed -i 's/docker.io\///g' ./release-$CALICO/manifests/calico.yaml
 cp ./release-$CALICO/manifests/* $MAN_PATH/.
 rm -rf ./release-$CALICO
+
+###############################################
+#  DOWNLOAD IMAGE REGISTRY (DOCKER REGISTRY)  #
+###############################################
+
+# download registry:2
+docker pull registry:2
+docker save registry:2 > $IMG_PATH/registry.tar
+
+# download sshpass
+yumdownloader --resolve sshpass
+mkdir $RPM_PATH/sshpass
+mv ./*.rpm $RPM_PATH/sshpass/.

@@ -45,7 +45,8 @@ echo "----- BEGIN DOCKER INSTALL -----"
 rpm -ivh --replacefiles --replacepkgs ./rpms/docker/*.rpm
 rm -fr ./rpms/docker # Remove installation files 
 
-#   Configure cgroup driver
+#   Configure cgroup driver and insecure docker registry
+REG_PORT=$(grep "registry-port:" meta.yaml | awk '{print $2}')
 mkdir /etc/docker
 cat <<EOF > /etc/docker/daemon.json
 {
@@ -57,6 +58,9 @@ cat <<EOF > /etc/docker/daemon.json
   "storage-driver": "overlay2",
   "storage-opts": [
     "overlay2.override_kernel_check=true"
+  ],
+  "insecure-registries": [
+    "$MASTER_IP:$REG_PORT"
   ]
 }
 EOF
@@ -80,7 +84,12 @@ rm -rf ./rpms/k8s
 systemctl enable --now kubelet
 echo "K8s installed"
 
+# k8s cluster token
 TOKEN=$(grep "token:" meta.yaml | awk '{print $2}')
+
+# docker registry certificate path
+certs=/etc/docker/certs.d/$MASTER_IP:$REG_PORT
+mkdir -p $certs
 
 # config for master node only
 if [[ $1 = "--master" ]]
@@ -104,6 +113,40 @@ then
 
     # config for kubernetes's network (Calico)
     kubectl apply -f ./manifests/calico.yaml
+
+    # install docker registry
+    #   image saving dir
+    mkdir /registry-image
+    #   cert for server
+    mkdir /etc/docker/certs
+
+    #   generate cert
+    openssl req\
+        -x509\
+        -config $(dirname "$0")/tls.csr\
+        -nodes\
+        -newkey rsa:4096\
+        -keyout tls.key\
+        -out tls.crt\
+        -days 365\
+        -extensions v3_req
+
+    #   copy cert
+    cp tls.crt $certs
+    mv tls.* /etc/docker/certs
+
+    #   run registry
+    docker run -d \
+      --restart=always \
+      --name registry \
+      -v /etc/docker/certs:/docker-in-certs:ro \
+      -v /registry-image:/var/lib/registry \
+      -e REGISTRY_HTTP_ADDR=0.0.0.0:443 \
+      -e REGISTRY_HTTP_TLS_CERTIFICATE=/docker-in-certs/tls.crt \
+      -e REGISTRY_HTTP_TLS_KEY=/docker-in-certs/tls.key \
+      -p $REG_PORT:443 \
+      registry:2
+
 fi
 
 # config for worker nodes
@@ -117,4 +160,9 @@ then
     kubeadm join\
         --token $TOKEN\
         --discovery-token-unsafe-skip-ca-verification $MASTER_IP:6443\
+
+    # get docker registry cert
+    rpm -ivh --replacefiles --replacepkgs ./rpms/sshpass/*.rpm
+    sshpass -p toor scp root@$MASTER_IP:$certs/tls.crt $certs/.
+
 fi
