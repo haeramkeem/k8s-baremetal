@@ -47,9 +47,9 @@ DOCKER_CE=$(grep "docker-ce:" meta.yaml | awk '{print $2}')
 DOCKER_CLI=$(grep "docker-ce-cli:" meta.yaml | awk '{print $2}')
 CONTAINERD=$(grep "containerd-io:" meta.yaml | awk '{print $2}')
 DOCKER_PKGS="docker-ce=$DOCKER_CE docker-ce-cli=$DOCKER_CLI containerd.io=$CONTAINERD"
-apt-get download $(apt-cache depends --recurse --no-recommends --no-suggests\
-    --no-conflicts --no-breaks --no-replaces --no-enhances\
-    --no-pre-depends ${DOCKER_PKGS} | grep "^\w")
+apt-get download $(apt-cache depends --recurse --no-recommends --no-suggests \
+    --no-conflicts --no-breaks --no-replaces --no-enhances \
+    --no-pre-depends ${DOCKER_PKGS} | grep "^\w" | grep -v "i386")
 mkdir $DEB_PATH/docker
 mv ./*.deb $DEB_PATH/docker/.
 
@@ -72,7 +72,7 @@ KUBEADM=$(grep "kubeadm:" meta.yaml | awk '{print $2}')
 K8S_PKGS="kubelet=$KUBELET kubectl=$KUBECTL kubeadm=$KUBEADM"
 apt-get download $(apt-cache depends --recurse --no-recommends --no-suggests\
     --no-conflicts --no-breaks --no-replaces --no-enhances\
-    --no-pre-depends ${K8S_PKGS} | grep "^\w")
+    --no-pre-depends ${K8S_PKGS} | grep "^\w" | grep -v "i386")
 mkdir $DEB_PATH/k8s
 mv ./*.deb $DEB_PATH/k8s/.
 
@@ -122,3 +122,18 @@ cp ./release-$CALICO/images/* $IMG_PATH/.
 sed -i 's/docker.io\///g' ./release-$CALICO/manifests/calico.yaml
 cp ./release-$CALICO/manifests/* $MAN_PATH/.
 rm -rf ./release-$CALICO
+
+###############################################
+#  DOWNLOAD IMAGE REGISTRY (DOCKER REGISTRY)  #
+###############################################
+
+# download registry:2
+docker pull registry:2
+docker save registry:2 > $IMG_PATH/registry.tar
+
+# download sshpass
+apt-get download $(apt-cache depends --recurse --no-recommends --no-suggests\
+    --no-conflicts --no-breaks --no-replaces --no-enhances\
+    --no-pre-depends sshpass | grep "^\w" | grep -v "i386")
+mkdir $DEB_PATH/sshpass
+mv ./*.deb $DEB_PATH/sshpass/.
