@@ -38,6 +38,7 @@ rm -rf ./debs/docker # Remove installation files
 
 #   Configure cgroup driver
 mkdir /etc/docker
+REG_PORT=$(grep "reg-port:" meta.yaml | awk '{print $2}')
 cat <<EOF > /etc/docker/daemon.json
 {
   "exec-opts": ["native.cgroupdriver=systemd"],
@@ -76,14 +77,13 @@ echo "K8s installed"
 
 TOKEN=$(grep "token:" meta.yaml | awk '{print $2}')
 
+# docker registry certificate path
+certs=/etc/docker/certs.d/$MASTER_IP:$REG_PORT
+mkdir -p $certs
+
 # config for master node only
 if [[ $1 = "--master" ]]
 then
-    # firewall configuration
-    ufw enable
-    ufw allow 6443,2379,2380,10250,10251,10252 proto tcp
-    ufw status
-
     # init kubernetes cluster
     kubeadm init\
         --token $TOKEN\
@@ -103,12 +103,6 @@ fi
 # config for worker nodes
 if [[ $1 = "--worker" ]]
 then
-    # firewall configuration
-    ufw enable
-    ufw allow 10250
-    ufw allow 30000:32767 proto tcp
-    ufw status
-
     # join kubernetes cluster
     kubeadm join\
         --token $TOKEN\
