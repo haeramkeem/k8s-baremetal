@@ -34,9 +34,9 @@ IMG_PATH=$DST_PATH/images
 
 # create dir
 # mkdir $DST_PATH
-mkdir $MAN_PATH
-mkdir $DEB_PATH
-mkdir $IMG_PATH
+mkdir -pv $MAN_PATH
+mkdir -pv $DEB_PATH
+mkdir -pv $IMG_PATH
 
 ##################################
 #  DOWNLOAD & INSTALL DOCKER CE  #
@@ -50,7 +50,7 @@ DOCKER_PKGS="docker-ce=$DOCKER_CE docker-ce-cli=$DOCKER_CLI containerd.io=$CONTA
 apt-get download $(apt-cache depends --recurse --no-recommends --no-suggests \
     --no-conflicts --no-breaks --no-replaces --no-enhances \
     --no-pre-depends ${DOCKER_PKGS} | grep "^\w" | grep -v "i386")
-mkdir $DEB_PATH/docker
+mkdir -pv $DEB_PATH/docker
 mv ./*.deb $DEB_PATH/docker/.
 
 # install docker ce
@@ -73,7 +73,7 @@ K8S_PKGS="kubelet=$KUBELET kubectl=$KUBECTL kubeadm=$KUBEADM"
 apt-get download $(apt-cache depends --recurse --no-recommends --no-suggests\
     --no-conflicts --no-breaks --no-replaces --no-enhances\
     --no-pre-depends ${K8S_PKGS} | grep "^\w" | grep -v "i386")
-mkdir $DEB_PATH/k8s
+mkdir -pv $DEB_PATH/k8s
 mv ./*.deb $DEB_PATH/k8s/.
 
 # download kubernetes images
@@ -115,12 +115,12 @@ tar -xvzf release-$CALICO.tgz
 rm -rf release-$CALICO.tgz
 
 # move all calico images to destination dir
-cp ./release-$CALICO/images/* $IMG_PATH/.
+cp -irv ./release-$CALICO/images/* $IMG_PATH/.
 
 # move all calico manifests to destination dir
 #   edit YAML to use local image instead of pulling it from registry
 sed -i 's/docker.io\///g' ./release-$CALICO/manifests/calico.yaml
-cp ./release-$CALICO/manifests/* $MAN_PATH/.
+cp -irv ./release-$CALICO/manifests/* $MAN_PATH/.
 rm -rf ./release-$CALICO
 
 ###############################################

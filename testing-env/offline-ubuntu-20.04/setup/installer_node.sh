@@ -37,7 +37,7 @@ dpkg -i ./debs/docker/*.deb
 rm -rf ./debs/docker # Remove installation files 
 
 #   Configure cgroup driver
-mkdir /etc/docker
+mkdir -pv /etc/docker
 cat <<EOF > /etc/docker/daemon.json
 {
   "exec-opts": ["native.cgroupdriver=systemd"],
@@ -81,7 +81,7 @@ TOKEN=$(grep "token:" meta.yaml | awk '{print $2}')
 REG_IP=$(grep "reg-ip:" meta.yaml | awk '{print $2}')
 REG_PORT=$(grep "reg-port:" meta.yaml | awk '{print $2}')
 certs=/etc/docker/certs.d/$REG_IP:$REG_PORT
-mkdir -p $certs
+mkdir -pv $certs
 
 # config for master node only
 if [[ $1 = "--master" ]]
@@ -94,8 +94,8 @@ then
         --apiserver-advertise-address=$MASTER_IP
 
     # copy configuration
-    mkdir -p $HOME/.kube
-    cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+    mkdir -pv $HOME/.kube
+    cp -irv /etc/kubernetes/admin.conf $HOME/.kube/config
     chown $(id -u):$(id -g) $HOME/.kube/config
 
     # config for kubernetes's network (Calico)
@@ -103,10 +103,10 @@ then
 
     # install docker registry
     #   image saving dir
-    mkdir /registry-image
+    mkdir -pv /registry-image
 
     #   cert for server
-    mkdir /etc/docker/certs
+    mkdir -pv /etc/docker/certs
 
     #   modify `tls.csr`
     sed -i "s/IPADDR/$REG_IP/g" tls.csr
@@ -123,9 +123,9 @@ then
         -extensions v3_req
 
     #   copy cert
-    cp tls.crt $certs
+    cp -irv tls.crt $certs
     mv tls.* /etc/docker/certs
-    cp /etc/docker/certs/tls.csr .
+    cp -irv /etc/docker/certs/tls.csr .
 
     #   run registry
     docker run -d\
