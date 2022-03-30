@@ -11,7 +11,7 @@ fi
 #   swapoff -a to disable swapping
 swapoff -a
 #   sed to comment the swap partition in /etc/fstab
-sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
+sed -i.bak -r 's/(.+\s*swap\s*.+)/#\1/' /etc/fstab
 
 # Use iptables and br_netfilter kernel module for IPv4 & IPv6 routing table
 cat <<EOF > /etc/sysctl.d/k8s.conf
