@@ -98,8 +98,8 @@ then
     cp -irv /etc/kubernetes/admin.conf $HOME/.kube/config
     chown $(id -u):$(id -g) $HOME/.kube/config
 
-    # config for kubernetes's network (Calico)
-    kubectl apply -f ./manifests/calico.yaml
+    # config for kubernetes's network
+    kubectl apply -f ./manifests/cni.yaml
 
     # install docker registry
     #   image saving dir
