@@ -38,8 +38,6 @@ rm -rf ./debs/docker # Remove installation files
 
 #   Configure cgroup driver
 mkdir /etc/docker
-REG_IP=$(grep "reg-ip:" meta.yaml | awk '{print $2}')
-REG_PORT=$(grep "reg-port:" meta.yaml | awk '{print $2}')
 cat <<EOF > /etc/docker/daemon.json
 {
   "exec-opts": ["native.cgroupdriver=systemd"],
@@ -50,9 +48,6 @@ cat <<EOF > /etc/docker/daemon.json
   "storage-driver": "overlay2",
   "storage-opts": [
     "overlay2.override_kernel_check=true"
-  ],
-  "insecure-registries": [
-    "$REG_IP:$REG_PORT"
   ]
 }
 EOF
@@ -83,6 +78,8 @@ echo "K8s installed"
 TOKEN=$(grep "token:" meta.yaml | awk '{print $2}')
 
 # docker registry certificate path
+REG_IP=$(grep "reg-ip:" meta.yaml | awk '{print $2}')
+REG_PORT=$(grep "reg-port:" meta.yaml | awk '{print $2}')
 certs=/etc/docker/certs.d/$REG_IP:$REG_PORT
 mkdir -p $certs
 
@@ -107,8 +104,12 @@ then
     # install docker registry
     #   image saving dir
     mkdir /registry-image
+
     #   cert for server
     mkdir /etc/docker/certs
+
+    #   modify `tls.csr`
+    sed -i "s/IPADDR/$REG_IP/g" tls.csr
 
     #   generate cert
     openssl req\
@@ -124,6 +125,7 @@ then
     #   copy cert
     cp tls.crt $certs
     mv tls.* /etc/docker/certs
+    cp /etc/docker/certs/tls.csr .
 
     #   run registry
     docker run -d\
