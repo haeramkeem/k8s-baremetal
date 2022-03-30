@@ -36,10 +36,10 @@ RPM_PATH=$DST_PATH/rpms
 IMG_PATH=$DST_PATH/images
 
 # create dir
-# mkdir $DST_PATH
-mkdir $MAN_PATH
-mkdir $RPM_PATH
-mkdir $IMG_PATH
+# mkdir -pv $DST_PATH
+mkdir -pv $MAN_PATH
+mkdir -pv $RPM_PATH
+mkdir -pv $IMG_PATH
 
 ##################################
 #  DOWNLOAD & INSTALL DOCKER CE  #
@@ -50,8 +50,8 @@ DOCKER_CE=$(grep "docker-ce:" meta.yaml | awk '{print $2}')
 DOCKER_CLI=$(grep "docker-ce-cli:" meta.yaml | awk '{print $2}')
 CONTAINERD=$(grep "containerd-io:" meta.yaml | awk '{print $2}')
 yumdownloader --resolve docker-ce-$DOCKER_CE docker-ce-cli-$DOCKER_CLI containerd.io-$CONTAINERD
-mkdir $RPM_PATH/docker
-cp ./*.rpm $RPM_PATH/docker/.
+mkdir -pv $RPM_PATH/docker
+cp -irv ./*.rpm $RPM_PATH/docker/.
 
 # install docker ce
 rpm -ivh --replacefiles --replacepkgs *.rpm
@@ -69,7 +69,7 @@ docker save nginx > $IMG_PATH/nginx.tar
 # download kubelet, kubeadm, kubectl
 KUBE_VERSION=$(grep "kube-version:" meta.yaml | awk '{print $2}')
 yumdownloader --resolve kubelet-$KUBE_VERSION kubeadm-$KUBE_VERSION kubectl-$KUBE_VERSION
-mkdir $RPM_PATH/k8s
+mkdir -pv $RPM_PATH/k8s
 mv ./*.rpm $RPM_PATH/k8s/.
 
 # download kubernetes images
@@ -111,12 +111,12 @@ tar -xvzf release-$CALICO.tgz
 rm -rf release-$CALICO.tgz
 
 # move all calico images to destination dir
-cp ./release-$CALICO/images/* $IMG_PATH/.
+cp -irv ./release-$CALICO/images/* $IMG_PATH/.
 
 # move all calico manifests to destination dir
 #   edit YAML to use local image instead of pulling it from registry
 sed -i 's/docker.io\///g' ./release-$CALICO/manifests/calico.yaml
-cp ./release-$CALICO/manifests/* $MAN_PATH/.
+cp -irv ./release-$CALICO/manifests/* $MAN_PATH/.
 rm -rf ./release-$CALICO
 
 ###############################################
