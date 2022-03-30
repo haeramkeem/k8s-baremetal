@@ -9,7 +9,7 @@ ST = SEOUL
 L = SEOUL
 O = test_organazation
 OU = test_org_unit
-CN = 192.168.1.10
+CN = IPADDR
 
 [v3_req]
 keyUsage = keyEncipherment, dataEncipherment
@@ -17,5 +17,5 @@ extendedKeyUsage = serverAuth
 subjectAltName = @alt_names
 
 [alt_names]
-DNS.0 = m-k8s
-IP.0 = 192.168.1.10
+DNS.0 = m1-k8s
+IP.0 = IPADDR

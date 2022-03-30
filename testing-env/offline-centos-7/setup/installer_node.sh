@@ -46,8 +46,6 @@ rpm -ivh --replacefiles --replacepkgs ./rpms/docker/*.rpm
 rm -fr ./rpms/docker # Remove installation files 
 
 #   Configure cgroup driver and insecure docker registry
-REG_IP=$(grep "reg-ip:" meta.yaml | awk '{print $2}')
-REG_PORT=$(grep "reg-port:" meta.yaml | awk '{print $2}')
 mkdir -pv /etc/docker
 cat <<EOF > /etc/docker/daemon.json
 {
@@ -59,9 +57,6 @@ cat <<EOF > /etc/docker/daemon.json
   "storage-driver": "overlay2",
   "storage-opts": [
     "overlay2.override_kernel_check=true"
-  ],
-  "insecure-registries": [
-    "$REG_IP:$REG_PORT"
   ]
 }
 EOF
@@ -89,8 +84,10 @@ echo "K8s installed"
 TOKEN=$(grep "token:" meta.yaml | awk '{print $2}')
 
 # docker registry certificate path
+REG_IP=$(grep "reg-ip:" meta.yaml | awk '{print $2}')
+REG_PORT=$(grep "reg-port:" meta.yaml | awk '{print $2}')
 certs=/etc/docker/certs.d/$REG_IP:$REG_PORT
-mkdir -pv -p $certs
+mkdir -pv $certs
 
 # config for master node only
 if [[ $1 = "--master" ]]
@@ -107,7 +104,7 @@ then
         --apiserver-advertise-address=$MASTER_IP
 
     # copy configuration
-    mkdir -pv -p $HOME/.kube
+    mkdir -pv $HOME/.kube
     cp -irv /etc/kubernetes/admin.conf $HOME/.kube/config
     chown $(id -u):$(id -g) $HOME/.kube/config
 
@@ -117,8 +114,12 @@ then
     # install docker registry
     #   image saving dir
     mkdir -pv /registry-image
+
     #   cert for server
     mkdir -pv /etc/docker/certs
+
+    #   modify `tls.csr`
+    sed -i "s/IPADDR/$REG_IP/g" tls.csr
 
     #   generate cert
     openssl req\
@@ -134,6 +135,7 @@ then
     #   copy cert
     cp -irv tls.crt $certs
     mv tls.* /etc/docker/certs
+    cp -irv /etc/docker/certs/tls.csr .
 
     #   run registry
     docker run -d\
