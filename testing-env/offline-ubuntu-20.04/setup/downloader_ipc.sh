@@ -96,23 +96,22 @@ PAUSE=$(grep "pause:" meta.yaml | awk '{print $2}')
 ETCD=$(grep "etcd:" meta.yaml | awk '{print $2}')
 COREDNS=$(grep "coredns:" meta.yaml | awk '{print $2}')
 
-#   pull images
-docker pull k8s.gcr.io/kube-apiserver:$API_SERVER
-docker pull k8s.gcr.io/kube-controller-manager:$CONTROLLER
-docker pull k8s.gcr.io/kube-scheduler:$SCHEDULER
-docker pull k8s.gcr.io/kube-proxy:$PROXY
-docker pull k8s.gcr.io/pause:$PAUSE
-docker pull k8s.gcr.io/etcd:$ETCD
-docker pull k8s.gcr.io/coredns/coredns:$COREDNS
+#   required image list
+KUBE_IMG_LIST="\
+k8s.gcr.io/kube-apiserver:$API_SERVER \
+k8s.gcr.io/kube-controller-manager:$CONTROLLER \
+k8s.gcr.io/kube-scheduler:$SCHEDULER \
+k8s.gcr.io/kube-proxy:$PROXY \
+k8s.gcr.io/pause:$PAUSE \
+k8s.gcr.io/etcd:$ETCD \
+k8s.gcr.io/coredns/coredns:$COREDNS"
 
-#   save images
-docker save k8s.gcr.io/kube-apiserver:$API_SERVER > $IMG_PATH/kube-apiserver.tar
-docker save k8s.gcr.io/kube-controller-manager:$CONTROLLER > $IMG_PATH/kube-controller-manager.tar
-docker save k8s.gcr.io/kube-scheduler:$SCHEDULER > $IMG_PATH/kube-scheduler.tar
-docker save k8s.gcr.io/kube-proxy:$PROXY > $IMG_PATH/kube-proxy.tar
-docker save k8s.gcr.io/pause:$PAUSE > $IMG_PATH/pause.tar
-docker save k8s.gcr.io/etcd:$ETCD > $IMG_PATH/etcd.tar
-docker save k8s.gcr.io/coredns/coredns:$COREDNS > $IMG_PATH/coredns.tar
+#   pull & download images
+for KUBE_IMG in $KUBE_IMG_LIST
+do
+    docker pull $KUBE_IMG
+    docker save $KUBE_IMG > $IMG_PATH/${KUBE_IMG//\//.}.tar
+done
 
 ########################
 #  DOWNLOAD CNI ADDON  #
@@ -128,7 +127,7 @@ curl $CNI_YAML -o $MAN_PATH/cni.yaml
 for CNI_IMG in $(grep "image:" $MAN_PATH/cni.yaml | awk '{print $2}' | sort -u)
 do
     docker pull $CNI_IMG
-    docker save $CNI_IMG > $IMG_PATH/$(echo ${CNI_IMG//\//-} | cut -d ':' -f 1).tar
+    docker save $CNI_IMG > $IMG_PATH/${CNI_IMG//\//.}.tar
 done
 
 ###############################################
