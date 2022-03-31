@@ -30,6 +30,7 @@ net.bridge.bridge-nf-call-ip6tables = 1
 net.bridge.bridge-nf-call-iptables = 1
 EOF
 modprobe br_netfilter
+modprobe overlay
 sysctl --system
 
 # Set local DNS - this will make communication between nodes with hostname instead of IP
@@ -62,7 +63,8 @@ cat <<EOF > /etc/docker/daemon.json
 }
 EOF
 
-systemctl enable --now docker.service
+systemctl daemon-reload
+systemctl restart docker
 echo "Docker installed"
 
 # Load all images

@@ -76,6 +76,7 @@ rm -rf ./debs/k8s
 systemctl enable --now kubelet
 echo "K8s installed"
 
+# k8s cluster token
 TOKEN=$(grep "token:" meta.yaml | awk '{print $2}')
 
 # docker registry certificate path

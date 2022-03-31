@@ -33,7 +33,7 @@ DEB_PATH=$DST_PATH/debs
 IMG_PATH=$DST_PATH/images
 
 # create dir
-# mkdir $DST_PATH
+# mkdir -pv $DST_PATH
 mkdir -pv $MAN_PATH
 mkdir -pv $DEB_PATH
 mkdir -pv $IMG_PATH
@@ -42,7 +42,7 @@ mkdir -pv $IMG_PATH
 #  DOWNLOAD & INSTALL DOCKER CE  #
 ##################################
 
-# Download docker ce
+# download docker ce
 DOCKER_CE=$(grep "docker-ce:" meta.yaml | awk '{print $2}')
 DOCKER_CLI=$(grep "docker-ce-cli:" meta.yaml | awk '{print $2}')
 CONTAINERD=$(grep "containerd-io:" meta.yaml | awk '{print $2}')
@@ -113,7 +113,9 @@ CNI_YAML=$(grep "cni-yaml:" meta.yaml | awk '{print $2}')
 curl $CNI_YAML -o $MAN_PATH/cni.yaml
 
 # download cni-related docker image
-for CNI_IMG in $(grep "image:" $MAN_PATH/cni.yaml | awk '{print $2}')
+#   as parsing YAML with bash script is limited,
+#   pulling docker image based on object-spec YAML has the possibility of malfunction
+for CNI_IMG in $(grep "image:" $MAN_PATH/cni.yaml | awk '{print $2}' | sort -u)
 do
     docker pull $CNI_IMG
     docker save $CNI_IMG > $IMG_PATH/$(echo ${CNI_IMG//\//-} | cut -d ':' -f 1).tar
