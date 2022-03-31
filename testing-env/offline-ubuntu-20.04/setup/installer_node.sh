@@ -1,5 +1,13 @@
 #!/usr/bin/env bash
 
+# Check superuser
+if [[ $(whoami) != "root" ]]
+then
+    echo "Please run this script in superuser."
+    echo "recommend: 'sudo su'"
+    exit 1
+fi
+
 # Check node type
 if [[ $1 != "--master" ]] && [[ $1 != "--worker" ]]
 then
@@ -96,6 +104,9 @@ then
         --apiserver-advertise-address=$MASTER_IP
 
     # copy configuration
+    #   kubeadm recommends to use `export KUBECONFIG=/etc/kubernetes/admin.conf`
+    #   when setting path for k8s config
+    #   so using the code below has the possibility of side-effect
     mkdir -pv $HOME/.kube
     cp -irv /etc/kubernetes/admin.conf $HOME/.kube/config
     chown $(id -u):$(id -g) $HOME/.kube/config
