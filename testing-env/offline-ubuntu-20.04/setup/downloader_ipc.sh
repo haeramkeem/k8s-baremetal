@@ -6,7 +6,7 @@
 
 # Install prerequisites
 apt-get update
-apt-get install ca-certificates curl gnupg lsb-release apt-transport-https
+apt-get install -y ca-certificates curl gnupg lsb-release apt-transport-https
 
 # Install docker apt repo
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
