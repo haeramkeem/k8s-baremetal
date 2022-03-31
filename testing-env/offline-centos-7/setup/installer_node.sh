@@ -37,15 +37,16 @@ MASTER_IP=$(grep "m1-k8s:" meta.yaml | awk '{print $2}')
 echo "$MASTER_IP m1-k8s" >> /etc/hosts
 for (( i=1; i<=$(grep "worker-count:" meta.yaml | awk '{print $2}'); i++  ))
 do
-    echo "192.168.1.10$i w$i-k8s" >> /etc/hosts
+    echo "$(grep w$i-k8s meta.yaml | awk '{print $2}') w$i-k8s" >> /etc/hosts
 done
 
 # Install Docker
 echo "----- BEGIN DOCKER INSTALL -----"
 rpm -ivh --replacefiles --replacepkgs ./rpms/docker/*.rpm
 rm -fr ./rpms/docker # Remove installation files 
+systemctl enable --now docker.service
 
-#   Configure cgroup driver and insecure docker registry
+#   Configure cgroup driver
 mkdir -pv /etc/docker
 cat <<EOF > /etc/docker/daemon.json
 {
