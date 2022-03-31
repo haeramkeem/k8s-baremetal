@@ -11,7 +11,7 @@ fi
 #   swapoff -a to disable swapping
 swapoff -a
 #   sed to comment the swap partition in /etc/fstab
-sed -i.bak -r 's/(.+ swap .+)/#\1/' /etc/fstab
+sed -i.bak -r 's/(.+\s+swap\s+.+)/#\1/' /etc/fstab
 
 # Set SELinux in permissive mode (effectively disabling it)
 #   SELinux means Security Enhanced Linux which is security-enhanced version of linux kernel
