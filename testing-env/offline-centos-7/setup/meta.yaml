@@ -17,9 +17,9 @@ docker:
 kubernetes:
   versions:
     kube-version: 1.23.5
-    kubectl: v1.23.5
-    kubelet: v1.23.5
-    kubeadm: v1.23.5
+    kubectl: 1.23.5
+    kubelet: 1.23.5
+    kubeadm: 1.23.5
     kube-apiserver: v1.23.5
     kube-controller-manager: v1.23.5
     kube-scheduler: v1.23.5
