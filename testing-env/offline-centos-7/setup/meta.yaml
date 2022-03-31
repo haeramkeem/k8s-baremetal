@@ -30,4 +30,5 @@ kubernetes:
   const:
     token: 123456.1234567890123456
     cidr: 172.16.0.0/16
-calico: v3.22.1
+cni:
+  cni-yaml: https://projectcalico.docs.tigera.io/manifests/calico.yaml

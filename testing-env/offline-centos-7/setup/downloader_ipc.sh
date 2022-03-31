@@ -100,24 +100,22 @@ docker save k8s.gcr.io/pause:$PAUSE > $IMG_PATH/pause.tar
 docker save k8s.gcr.io/etcd:$ETCD > $IMG_PATH/etcd.tar
 docker save k8s.gcr.io/coredns/coredns:$COREDNS > $IMG_PATH/coredns.tar
 
-#####################
-#  DOWNLOAD CALICO  #
-#####################
+########################
+#  DOWNLOAD CNI ADDON  #
+########################
 
-# download released calico
-CALICO=$(grep "calico:" meta.yaml | awk '{print $2}')
-curl -LO https://github.com/projectcalico/calico/releases/download/$CALICO/release-$CALICO.tgz
-tar -xvzf release-$CALICO.tgz
-rm -rf release-$CALICO.tgz
+# download cni yaml
+CNI_YAML=$(grep "cni-yaml:" meta.yaml | awk '{print $2}')
+curl $CNI_YAML -o $MAN_PATH/cni.yaml
 
-# move all calico images to destination dir
-cp -irv ./release-$CALICO/images/* $IMG_PATH/.
-
-# move all calico manifests to destination dir
-#   edit YAML to use local image instead of pulling it from registry
-sed -i 's/docker.io\///g' ./release-$CALICO/manifests/calico.yaml
-cp -irv ./release-$CALICO/manifests/* $MAN_PATH/.
-rm -rf ./release-$CALICO
+# download cni-related docker image
+#   as parsing YAML with bash script is limited,
+#   pulling docker image based on object-spec YAML has the possibility of malfunction
+for CNI_IMG in $(grep "image:" $MAN_PATH/cni.yaml | awk '{print $2}' | sort -u)
+do
+    docker pull $CNI_IMG
+    docker save $CNI_IMG > $IMG_PATH/$(echo ${CNI_IMG//\//-} | cut -d ':' -f 1).tar
+done
 
 ###############################################
 #  DOWNLOAD IMAGE REGISTRY (DOCKER REGISTRY)  #
