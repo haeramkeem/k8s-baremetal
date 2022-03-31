@@ -46,6 +46,8 @@ mkdir -pv $IMG_PATH
 DOCKER_CE=$(grep "docker-ce:" meta.yaml | awk '{print $2}')
 DOCKER_CLI=$(grep "docker-ce-cli:" meta.yaml | awk '{print $2}')
 CONTAINERD=$(grep "containerd-io:" meta.yaml | awk '{print $2}')
+#   download the packages will all dependencies included from apt: https://stackoverflow.com/a/45489718
+#       + `grep -v "i386"` will discard all dependencies with i386 architecture
 DOCKER_PKGS="docker-ce=$DOCKER_CE docker-ce-cli=$DOCKER_CLI containerd.io=$CONTAINERD"
 apt-get download $(apt-cache depends --recurse --no-recommends --no-suggests \
     --no-conflicts --no-breaks --no-replaces --no-enhances \
