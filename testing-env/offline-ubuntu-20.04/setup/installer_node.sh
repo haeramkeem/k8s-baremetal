@@ -164,6 +164,7 @@ then
 
     # get docker registry cert
     #   use openssl for fetching registry cert
+    #   ref: https://superuser.com/a/641396
     openssl s_client -showcerts -connect $REG_IP:$REG_PORT\
         </dev/null 2>/dev/null|openssl x509 -outform PEM >$certs/tls.crt
 
