@@ -99,6 +99,10 @@ Source: Kubernetes official documentation
     - Think about pods this way: Most of the pods are just wapping a container, but not all pods does that
     - A Pod is just a logical thing → the concept of “wrapper” of the container makes u feel like a Pod is stored in the worker node (in the logical perspective, it’s correct), but a Pod is stored in a master node in physical perspective
         - But u can think that a Pod is stored in the worker node → It doesn’t matter where a pod is stored physically
+    
+    > 도커는 많은 컴포넌트로 이루어져 있지만, 말하자면 사실상 도커는 '컨테이너' 입니다. 도커는 소프트웨어 단일 유닛을 디플로이(deploy) 하기에 매우 적합한 '컨테이너' 죠. 그러나 이러한 도커의 모델은 소프트웨어의 여러 부분들을 실행하려고 할 때 다소 다루기 힘든 단점으로서 다가올 수도 있습니다. 어떤 경우에 그런 단점이 부각될 수 있을까요? 도커 이미지에서 엔트리포인트(entrypoint) 로서 supervisord를 사용하고, 그로부터 여러 개의 프로세스를 시작시키는 경우를 보신 적이 있을지 모르겠습니다. 실제 운영 (Production) 환경에서는, 그렇게 supervisord를 사용하는 것보다는... **부분적으로 격리되어 있지만 부분적으로는 리눅스 namespace와 같은 환경을 일부 공유하는 여러 개의 컨테이너**
+    를 디플로이(deploy) 하는 것이 더 효율적일수도 있습니다.
+    > 
 2. Namespace
     - N**amespace** is kinda *group* of the workload resources
     - The purpose of the **Namespace** is the isolation of the workload resources
