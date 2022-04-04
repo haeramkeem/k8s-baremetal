@@ -125,8 +125,7 @@ curl $CNI_YAML -o $MAN_PATH/cni.yaml
 # download cni-related docker image
 #   as parsing YAML with bash script is limited,
 #   pulling docker image based on object-spec YAML has the possibility of malfunction
-CNI_IMG_LIST=$(grep "image:" $MAN_PATH/cni.yaml | grep -v "#" | awk '{print $2}' | sor
-t -u)
+CNI_IMG_LIST=$(grep "image:" $MAN_PATH/cni.yaml | grep -v "#" | awk '{print $2}' | sort -u)
 for CNI_IMG in $CNI_IMG_LIST
 do
     docker pull $CNI_IMG
