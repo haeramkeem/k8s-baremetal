@@ -8,6 +8,48 @@ then
     exit 1
 fi
 
+###########################
+#  LOAD META.YAML CONFIG  #
+###########################
+
+# Bash YAML parser
+#   ref: https://stackoverflow.com/a/21189044
+function parse_yaml {
+    local prefix=$2
+    local s='[[:space:]]*' w='[a-zA-Z0-9_]*' fs=$(echo @|tr @ '\034')
+    sed -ne "s|^\($s\):|\1|" \
+        -e "s|^\($s\)\($w\)$s:$s[\"']\(.*\)[\"']$s\$|\1$fs\2$fs\3|p" \
+        -e "s|^\($s\)\($w\)$s:$s\(.*\)$s\$|\1$fs\2$fs\3|p"  $1 |
+    awk -F$fs '{
+        indent = length($1)/2;
+        vname[indent] = $2;
+        for (i in vname) {if (i > indent) {delete vname[i]}}
+        if (length($3) > 0) {
+            vn=""; for (i=0; i<indent; i++) {vn=(vn)(vname[i])("_")}
+            printf("%s%s%s=\"%s\"\n", "'$prefix'",vn, $2, $3);
+        }
+    }'
+}
+
+# Parse `meta.yaml`
+eval $(parse_yaml meta.yaml "META_")
+
+# Use short name
+DOCKER_CE=$META_docker_versions_ce
+DOCKER_CLI=$META_docker_versions_cli
+CONTAINERD=$META_docker_versions_containerd
+KUBELET=$META_kubernetes_versions_kubelet
+KUBECTL=$META_kubernetes_versions_kubectl
+KUBEADM=$META_kubernetes_versions_kubeadm
+API_SERVER=$META_kubernetes_versions_kube_apiserver
+CONTROLLER=$META_kubernetes_versions_kube_controller_manager
+SCHEDULER=$META_kubernetes_versions_kube_scheduler
+PROXY=$META_kubernetes_versions_kube_proxy
+PAUSE=$META_kubernetes_versions_pause
+ETCD=$META_kubernetes_versions_etcd
+COREDNS=$META_kubernetes_versions_coredns
+CNI_YAML=$META_cni_yaml
+
 ################################
 #  INSTALL RELATED REPOSITORY  #
 ################################
@@ -51,9 +93,6 @@ mkdir -pv $IMG_PATH
 ##################################
 
 # download docker ce
-DOCKER_CE=$(grep "docker-ce:" meta.yaml | awk '{print $2}')
-DOCKER_CLI=$(grep "docker-ce-cli:" meta.yaml | awk '{print $2}')
-CONTAINERD=$(grep "containerd-io:" meta.yaml | awk '{print $2}')
 #   download the packages will all dependencies included from apt
 #       `grep -v "i386"` will discard all dependencies with i386 architecture
 #       ref: https://stackoverflow.com/a/45489718
@@ -77,9 +116,6 @@ docker save nginx > $IMG_PATH/nginx.tar
 #########################
 
 # download kubelet, kubeadm, kubectl
-KUBELET=$(grep "kubelet:" meta.yaml | awk '{print $2}')
-KUBECTL=$(grep "kubectl:" meta.yaml | awk '{print $2}')
-KUBEADM=$(grep "kubeadm:" meta.yaml | awk '{print $2}')
 K8S_PKGS="kubelet=$KUBELET kubectl=$KUBECTL kubeadm=$KUBEADM"
 apt-get download $(apt-cache depends --recurse --no-recommends --no-suggests\
     --no-conflicts --no-breaks --no-replaces --no-enhances\
@@ -88,15 +124,6 @@ mkdir -pv $DEB_PATH/k8s
 mv ./*.deb $DEB_PATH/k8s/.
 
 # download kubernetes images
-#   version variables
-API_SERVER=$(grep "kube-apiserver:" meta.yaml | awk '{print $2}')
-CONTROLLER=$(grep "kube-controller-manager:" meta.yaml | awk '{print $2}')
-SCHEDULER=$(grep "kube-scheduler:" meta.yaml | awk '{print $2}')
-PROXY=$(grep "kube-proxy:" meta.yaml | awk '{print $2}')
-PAUSE=$(grep "pause:" meta.yaml | awk '{print $2}')
-ETCD=$(grep "etcd:" meta.yaml | awk '{print $2}')
-COREDNS=$(grep "coredns:" meta.yaml | awk '{print $2}')
-
 #   required image list
 KUBE_IMG_LIST="\
 k8s.gcr.io/kube-apiserver:$API_SERVER \
@@ -119,8 +146,7 @@ done
 ########################
 
 # download cni yaml
-CNI_YAML=$(grep "cni-yaml:" meta.yaml | awk '{print $2}')
-curl $CNI_YAML -o $MAN_PATH/cni.yaml
+curl -Lo $MAN_PATH/cni.yaml $CNI_YAML
 
 # download cni-related docker image
 #   as parsing YAML with bash script is limited,
