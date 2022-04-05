@@ -1,11 +1,50 @@
 #!/usr/bin/env bash
 
+# Check superuser
+if [[ $(whoami) != "root" ]]
+then
+    echo "Please run this script in superuser."
+    echo "recommend: 'sudo su'"
+    exit 1
+fi
+
 # Check node type
 if [[ $1 != "--master" ]] && [[ $1 != "--worker" ]]
 then
     echo "Please specify the node type: --master or --worker"
     exit 1
 fi
+
+# Bash YAML parser
+#   ref: https://stackoverflow.com/a/21189044
+function parse_yaml {
+    local prefix=$2
+    local s='[[:space:]]*' w='[a-zA-Z0-9_]*' fs=$(echo @|tr @ '\034')
+    sed -ne "s|^\($s\):|\1|" \
+        -e "s|^\($s\)\($w\)$s:$s[\"']\(.*\)[\"']$s\$|\1$fs\2$fs\3|p" \
+        -e "s|^\($s\)\($w\)$s:$s\(.*\)$s\$|\1$fs\2$fs\3|p"  $1 |
+    awk -F$fs '{
+        indent = length($1)/2;
+        vname[indent] = $2;
+        for (i in vname) {if (i > indent) {delete vname[i]}}
+        if (length($3) > 0) {
+            vn=""; for (i=0; i<indent; i++) {vn=(vn)(vname[i])("_")}
+            printf("%s%s%s=\"%s\"\n", "'$prefix'",vn, $2, $3);
+        }
+    }'
+}
+
+# Parse `meta.yaml`
+eval $(parse_yaml meta.yaml "META_")
+
+# Use short name
+WORKER_COUNT=$META_node_worker_count
+MASTER_IP=$META_node_ip_master
+WORKER_BASE=$META_node_ip_worker_base
+TOKEN=$META_kubernetes_const_token
+CIDR=$META_kubernetes_const_cidr
+REG_IP=$META_docker_registry_ip
+REG_PORT=$META_docker_registry_port
 
 # Kubernetes requires the disabling of the partition swapping
 #   swapoff -a to disable swapping
@@ -34,11 +73,10 @@ modprobe overlay
 sysctl --system
 
 # Set local DNS - this will make communication between nodes with hostname instead of IP
-MASTER_IP=$(grep "m1-k8s:" meta.yaml | awk '{print $2}')
 echo "$MASTER_IP m1-k8s" >> /etc/hosts
-for (( i=1; i<=$(grep "worker-count:" meta.yaml | awk '{print $2}'); i++  ))
+for (( i=1; i<=$WORKER_COUNT; i++  ))
 do
-    echo "$(grep w$i-k8s meta.yaml | awk '{print $2}') w$i-k8s" >> /etc/hosts
+    echo "$WORKER_BASE$i w$i-k8s" >> /etc/hosts
 done
 
 # Install Docker
@@ -83,14 +121,9 @@ rm -rf ./rpms/k8s
 systemctl enable --now kubelet
 echo "K8s installed"
 
-# k8s cluster token
-TOKEN=$(grep "token:" meta.yaml | awk '{print $2}')
-
 # docker registry certificate path
-REG_IP=$(grep "reg-ip:" meta.yaml | awk '{print $2}')
-REG_PORT=$(grep "reg-port:" meta.yaml | awk '{print $2}')
-certs=/etc/docker/certs.d/$REG_IP:$REG_PORT
-mkdir -pv $certs
+CERTS=/etc/docker/certs.d/$REG_IP:$REG_PORT
+mkdir -pv $CERTS
 
 # config for master node only
 if [[ $1 = "--master" ]]
@@ -103,10 +136,13 @@ then
     kubeadm init\
         --token $TOKEN\
         --token-ttl 0 \
-        --pod-network-cidr=$(grep "cidr:" meta.yaml | awk '{print $2}')\
+        --pod-network-cidr=$CIDR\
         --apiserver-advertise-address=$MASTER_IP
 
     # copy configuration
+    #   kubeadm recommends to use `export KUBECONFIG=/etc/kubernetes/admin.conf`
+    #   when setting path for k8s config
+    #   so using the code below has the possibility of side-effect
     mkdir -pv $HOME/.kube
     cp -irv /etc/kubernetes/admin.conf $HOME/.kube/config
     chown $(id -u):$(id -g) $HOME/.kube/config
@@ -136,7 +172,7 @@ then
         -extensions v3_req
 
     #   copy cert
-    cp -irv tls.crt $certs
+    cp -irv tls.crt $CERTS
     mv tls.* /etc/docker/certs
     cp -irv /etc/docker/certs/tls.csr .
 
@@ -168,7 +204,8 @@ then
 
     # get docker registry cert
     #   use openssl for fetching registry cert
+    #   ref: https://superuser.com/a/641396
     openssl s_client -showcerts -connect $REG_IP:$REG_PORT\
-        </dev/null 2>/dev/null|openssl x509 -outform PEM >$certs/tls.crt
+        </dev/null 2>/dev/null|openssl x509 -outform PEM >$CERTS/tls.crt
 
 fi

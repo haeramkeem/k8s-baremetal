@@ -1,5 +1,55 @@
 #!/usr/bin/env bash
 
+# Check superuser
+if [[ $(whoami) != "root" ]]
+then
+    echo "Please run this script in superuser."
+    echo "recommend: 'sudo su'"
+    exit 1
+fi
+
+###########################
+#  LOAD META.YAML CONFIG  #
+###########################
+
+# Bash YAML parser
+#   ref: https://stackoverflow.com/a/21189044
+function parse_yaml {
+    local prefix=$2
+    local s='[[:space:]]*' w='[a-zA-Z0-9_]*' fs=$(echo @|tr @ '\034')
+    sed -ne "s|^\($s\):|\1|" \
+        -e "s|^\($s\)\($w\)$s:$s[\"']\(.*\)[\"']$s\$|\1$fs\2$fs\3|p" \
+        -e "s|^\($s\)\($w\)$s:$s\(.*\)$s\$|\1$fs\2$fs\3|p"  $1 |
+    awk -F$fs '{
+        indent = length($1)/2;
+        vname[indent] = $2;
+        for (i in vname) {if (i > indent) {delete vname[i]}}
+        if (length($3) > 0) {
+            vn=""; for (i=0; i<indent; i++) {vn=(vn)(vname[i])("_")}
+            printf("%s%s%s=\"%s\"\n", "'$prefix'",vn, $2, $3);
+        }
+    }'
+}
+
+# Parse `meta.yaml`
+eval $(parse_yaml meta.yaml "META_")
+
+# Use short name
+DOCKER_CE=$META_docker_versions_ce
+DOCKER_CLI=$META_docker_versions_cli
+CONTAINERD=$META_docker_versions_containerd
+KUBELET=$META_kubernetes_versions_kubelet
+KUBECTL=$META_kubernetes_versions_kubectl
+KUBEADM=$META_kubernetes_versions_kubeadm
+API_SERVER=$META_kubernetes_versions_kube_apiserver
+CONTROLLER=$META_kubernetes_versions_kube_controller_manager
+SCHEDULER=$META_kubernetes_versions_kube_scheduler
+PROXY=$META_kubernetes_versions_kube_proxy
+PAUSE=$META_kubernetes_versions_pause
+ETCD=$META_kubernetes_versions_etcd
+COREDNS=$META_kubernetes_versions_coredns
+CNI_YAML=$META_cni_yaml
+
 ################################
 #  INSTALL RELATED REPOSITORY  #
 ################################
@@ -46,17 +96,13 @@ mkdir -pv $IMG_PATH
 ##################################
 
 # download docker ce
-DOCKER_CE=$(grep "docker-ce:" meta.yaml | awk '{print $2}')
-DOCKER_CLI=$(grep "docker-ce-cli:" meta.yaml | awk '{print $2}')
-CONTAINERD=$(grep "containerd-io:" meta.yaml | awk '{print $2}')
 yumdownloader --resolve docker-ce-$DOCKER_CE docker-ce-cli-$DOCKER_CLI containerd.io-$CONTAINERD
 mkdir -pv $RPM_PATH/docker
-cp -irv ./*.rpm $RPM_PATH/docker/.
+mv ./*.rpm $RPM_PATH/docker/.
 
 # install docker ce
-rpm -ivh --replacefiles --replacepkgs *.rpm
+rpm -ivh --replacefiles --replacepkgs $RPM_PATH/docker/*.rpm
 systemctl enable --now docker.service
-rm -rf *.rpm
 
 # Download test docker image
 docker pull nginx
@@ -67,48 +113,34 @@ docker save nginx > $IMG_PATH/nginx.tar
 #########################
 
 # download kubelet, kubeadm, kubectl
-KUBELET=$(grep "kubelet:" meta.yaml | awk '{print $2}')
-KUBECTL=$(grep "kubectl:" meta.yaml | awk '{print $2}')
-KUBEADM=$(grep "kubeadm:" meta.yaml | awk '{print $2}')
 yumdownloader --resolve kubelet-$KUBELET kubeadm-$KUBEADM kubectl-$KUBECTL
 mkdir -pv $RPM_PATH/k8s
 mv ./*.rpm $RPM_PATH/k8s/.
 
 # download kubernetes images
-#   version variables
-API_SERVER=$(grep "kube-apiserver:" meta.yaml | awk '{print $2}')
-CONTROLLER=$(grep "kube-controller-manager:" meta.yaml | awk '{print $2}')
-SCHEDULER=$(grep "kube-scheduler:" meta.yaml | awk '{print $2}')
-PROXY=$(grep "kube-proxy:" meta.yaml | awk '{print $2}')
-PAUSE=$(grep "pause:" meta.yaml | awk '{print $2}')
-ETCD=$(grep "etcd:" meta.yaml | awk '{print $2}')
-COREDNS=$(grep "coredns:" meta.yaml | awk '{print $2}')
+#   required image list
+KUBE_IMG_LIST="\
+k8s.gcr.io/kube-apiserver:$API_SERVER \
+k8s.gcr.io/kube-controller-manager:$CONTROLLER \
+k8s.gcr.io/kube-scheduler:$SCHEDULER \
+k8s.gcr.io/kube-proxy:$PROXY \
+k8s.gcr.io/pause:$PAUSE \
+k8s.gcr.io/etcd:$ETCD \
+k8s.gcr.io/coredns/coredns:$COREDNS"
 
-#   pull images
-docker pull k8s.gcr.io/kube-apiserver:$API_SERVER
-docker pull k8s.gcr.io/kube-controller-manager:$CONTROLLER
-docker pull k8s.gcr.io/kube-scheduler:$SCHEDULER
-docker pull k8s.gcr.io/kube-proxy:$PROXY
-docker pull k8s.gcr.io/pause:$PAUSE
-docker pull k8s.gcr.io/etcd:$ETCD
-docker pull k8s.gcr.io/coredns/coredns:$COREDNS
-
-#   save images
-docker save k8s.gcr.io/kube-apiserver:$API_SERVER > $IMG_PATH/kube-apiserver.tar
-docker save k8s.gcr.io/kube-controller-manager:$CONTROLLER > $IMG_PATH/kube-controller-manager.tar
-docker save k8s.gcr.io/kube-scheduler:$SCHEDULER > $IMG_PATH/kube-scheduler.tar
-docker save k8s.gcr.io/kube-proxy:$PROXY > $IMG_PATH/kube-proxy.tar
-docker save k8s.gcr.io/pause:$PAUSE > $IMG_PATH/pause.tar
-docker save k8s.gcr.io/etcd:$ETCD > $IMG_PATH/etcd.tar
-docker save k8s.gcr.io/coredns/coredns:$COREDNS > $IMG_PATH/coredns.tar
+#   pull & download images
+for KUBE_IMG in $KUBE_IMG_LIST
+do
+    docker pull $KUBE_IMG
+    docker save $KUBE_IMG > $IMG_PATH/${KUBE_IMG//\//.}.tar
+done
 
 ########################
 #  DOWNLOAD CNI ADDON  #
 ########################
 
 # download cni yaml
-CNI_YAML=$(grep "cni-yaml:" meta.yaml | awk '{print $2}')
-curl $CNI_YAML -o $MAN_PATH/cni.yaml
+curl -Lo $MAN_PATH/cni.yaml $CNI_YAML
 
 # download cni-related docker image
 #   as parsing YAML with bash script is limited,
@@ -117,7 +149,7 @@ CNI_IMG_LIST=$(sed -nr "s/[^#]\s*image:\s*['\"]?([^'\"]+)['\"]?/\1/gp" $MAN_PATH
 for CNI_IMG in $CNI_IMG_LIST
 do
     docker pull $CNI_IMG
-    docker save $CNI_IMG > $IMG_PATH/$(echo ${CNI_IMG//\//-} | cut -d ':' -f 1).tar
+    docker save $CNI_IMG > $IMG_PATH/${CNI_IMG//\//.}.tar
 done
 
 ###############################################
