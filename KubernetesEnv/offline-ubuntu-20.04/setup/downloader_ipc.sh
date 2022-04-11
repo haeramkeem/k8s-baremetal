@@ -105,7 +105,17 @@ mv ./*.deb $DEB_PATH/docker/.
 
 # install docker ce
 dpkg -i $DEB_PATH/docker/*.deb
-systemctl enable --now docker.service
+# Some environment like `WSL` systemd isn't used to initiate and manage system
+#   In this case, use `servive` command instead
+#   Ref: https://dev.to/bowmanjd/install-docker-on-windows-wsl-without-docker-desktop-34m9
+#   Check init method: https://unix.stackexchange.com/a/121665
+if `pidof systemd`
+then
+    systemctl enable --now docker.service
+else
+    service docker start
+    chkconfig docker on
+fi
 
 # Download test docker image
 docker pull nginx
