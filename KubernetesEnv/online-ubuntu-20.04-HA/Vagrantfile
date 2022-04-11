@@ -11,16 +11,16 @@ Vagrant.configure("2") do |config|
   #==============#
 
   (1..Masters).each do |i|
-    VM = "k8s-m#{i}"
-    config.vm.define VM do |cfg|
+    vm = "k8s-m#{i}"
+    config.vm.define vm do |cfg|
       # Vagrant box info
       cfg.vm.box = "ubuntu/focal64"
-      cfg.vm.host_name = VM
+      cfg.vm.host_name = vm
       cfg.vm.synced_folder "../data", "/vagrant", disabled: true
 
       # VirtualBox system resource config
       cfg.vm.provider "virtualbox" do |vb|
-        vb.name = "#{VM}(github_haeramkeem)"
+        vb.name = "#{vm}(github_haeramkeem)"
         vb.cpus = 2
         vb.memory = 2048
         vb.customize ["modifyvm", :id, "--groups", "/k8s-HA"]
@@ -39,8 +39,8 @@ Vagrant.configure("2") do |config|
       cfg.vm.provision "file", source: "./master_node.sh", destination: "$HOME/setup.sh"
 
       # Make executable
-      cfg.vm.provision "shell", inline: "chmod 711 /home/vagrant/setup/*.sh"
-      cfg.vm.provision "shell", inline: "sed -i -e 's/\r$//' /home/vagrant/setup/*"
+      cfg.vm.provision "shell", inline: "chmod 711 /home/vagrant/*.sh"
+      cfg.vm.provision "shell", inline: "sed -i -e 's/\r$//' /home/vagrant/setup.sh"
     end
   end
 
@@ -48,17 +48,17 @@ Vagrant.configure("2") do |config|
   # Worker Nodes #
   #==============#
 
-  (1..Worker).each do |i|
-    VM = "k8s-w#{i}"
-    config.vm.define VM do |cfg|
+  (1..Workers).each do |i|
+    vm = "k8s-w#{i}"
+    config.vm.define vm do |cfg|
       # Vagrant box info
       cfg.vm.box = "ubuntu/focal64"
-      cfg.vm.host_name = VM
+      cfg.vm.host_name = vm
       cfg.vm.synced_folder "../data", "/vagrant", disabled: true
 
       # VirtualBox system resource config
       cfg.vm.provider "virtualbox" do |vb|
-        vb.name = "#{VM}(github_haeramkeem)"
+        vb.name = "#{vm}(github_haeramkeem)"
         vb.cpus = 1
         vb.memory = 2048
         vb.customize ["modifyvm", :id, "--groups", "/k8s-HA"]
@@ -77,8 +77,8 @@ Vagrant.configure("2") do |config|
       cfg.vm.provision "file", source: "./worker_node.sh", destination: "$HOME/setup.sh"
 
       # Make executable
-      cfg.vm.provision "shell", inline: "chmod 711 /home/vagrant/setup/*.sh"
-      cfg.vm.provision "shell", inline: "sed -i -e 's/\r$//' /home/vagrant/setup/*"
+      cfg.vm.provision "shell", inline: "chmod 711 /home/vagrant/*.sh"
+      cfg.vm.provision "shell", inline: "sed -i -e 's/\r$//' /home/vagrant/setup.sh"
     end
   end
 

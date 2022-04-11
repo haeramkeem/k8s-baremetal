@@ -2,7 +2,7 @@
 
 # Install prerequisites
 apt-get update
-apt-get install -y git vim
+apt-get install -y git vim net-tools
 
 # vim configuration 
 echo 'alias vi=vim' >> /etc/profile
