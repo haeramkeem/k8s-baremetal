@@ -55,9 +55,10 @@ kubectl apply -f https://projectcalico.docs.tigera.io/manifests/calico.yaml
 # Generate join script for worker
 JOIN_STR=$(kubeadm token create --print-join-command)
 cat <<EOF > join_worker.sh
-#!bin/bash
+#!/bin/bash
 $JOIN_STR
 EOF
+chmod 744 join_worker.sh
 
 # Generate join script for master
 cat <<EOF > join_master.sh
@@ -67,3 +68,4 @@ mkdir -p $HOME/.kube
 cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 chown $(id -u):$(id -g) $HOME/.kube/config
 EOF
+chmod 744 join_master.sh
