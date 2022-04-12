@@ -5,11 +5,11 @@
 ###############
 
 POD_CIDR="172.16.0.0/16"
-CLUSTER_TOK="123456.1234567890123456"
 # Get current node's IP
 #   Ref: https://stackoverflow.com/a/26694162
 LB_ENDPOINT_IP=$(ip -4 addr show enp0s3 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
 LB_ENDPOINT_PORT=26443
+CERT_KEY=$(kubeadm certs certificate-key)
 
 #####################
 #  INSTALL HAPROXY  #
@@ -30,14 +30,14 @@ systemctl restart haproxy
 #####################
 
 # Join cluster using `init_output.log`
+#   Generated token is automatically deleted after 1s
 kubeadm init \
-    --token $CLUSTER_TOK \
-    --token-ttl 0 \
-    --pod-network-cidr=$POD_CIDR \
-    --apiserver-advertise-address=$LB_ENDPOINT_IP \
+    --certificate-key $CERT_KEY \
+    --token-ttl "1s" \
+    --pod-network-cidr $POD_CIDR \
+    --apiserver-advertise-address $LB_ENDPOINT_IP \
     --upload-certs \
-    --control-plane-endpoint "$LB_ENDPOINT_IP:$LB_ENDPOINT_PORT" &> \
-    init_output.log
+    --control-plane-endpoint "$LB_ENDPOINT_IP:$LB_ENDPOINT_PORT"
 
 # config for master node only 
 mkdir -p $HOME/.kube
@@ -46,3 +46,23 @@ chown $(id -u):$(id -g) $HOME/.kube/config
 
 # config for kubernetes's network 
 kubectl apply -f https://projectcalico.docs.tigera.io/manifests/calico.yaml
+
+##########################
+#  GENERATE JOIN SCRIPT  #
+##########################
+
+# Generate join script for worker
+JOIN_STR=$(kubeadm token create --print-join-command)
+cat <<EOF > join_worker.sh
+#!bin/bash
+$JOIN_STR
+EOF
+
+# Generate join script for master
+cat <<EOF > join_master.sh
+#!/bin/bash
+$JOIN_STR--control-plane --certificate-key $CERT_KEY
+mkdir -p $HOME/.kube
+cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+chown $(id -u):$(id -g) $HOME/.kube/config
+EOF
