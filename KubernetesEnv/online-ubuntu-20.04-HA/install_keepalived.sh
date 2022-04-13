@@ -4,7 +4,7 @@
 #  VARIABLES  #
 ###############
 
-if ! $1; then
+if [[ $1 != "--real" && $1 != "--sorry" ]]; then
     echo "Please specify the server type"
     echo "* available: --real --sorry"
     exit 1
