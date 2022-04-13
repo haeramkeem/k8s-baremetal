@@ -5,7 +5,7 @@
 ###############
 
 # Check variables
-if $1; then
+if ! $1; then
     echo "Please set the cluster endpoint"
     echo "* Format: 'IP:PORT'"
     exit 1
