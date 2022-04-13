@@ -11,7 +11,7 @@ bash <(curl -sL https://raw.githubusercontent.com/haeramkeem/infra-exercise/main
 * A frontend node requires HAProxy with its configuration.
 * Installation script is prepared in `install_haproxy.sh`.
 * Configuration for HAProxy is prepared in `haproxy.cfg`.
-* This configuration opens the `26443` port for endpoint port and balances the traffic to 6443 port of backend nodes by RR.
+* This configuration opens the `26443` port for endpoint port and balances the traffic to `6443` port of backend nodes by RR.
 * U can executes the `install_haproxy.sh` script without downloading it:
 ```bash
 bash <(curl -sL https://raw.githubusercontent.com/haeramkeem/infra-exercise/main/KubernetesEnv/online-ubuntu-20.04-HA/install_haproxy.sh)
