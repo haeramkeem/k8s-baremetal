@@ -4,37 +4,25 @@
 #  VARIABLES  #
 ###############
 
+# Check variables
+if $1; then
+    echo "Please set the cluster endpoint"
+    echo "* Format: 'IP:PORT'"
+    exit 1
+fi
+
+LB_ENDPOINT_IP=$(echo $1 | cut -d ':' -f 1)
+LB_ENDPOINT_PORT=$(echo $1 | cut -d ':' -f 2)
 POD_CIDR="172.16.0.0/16"
-# Get current node's IP
-#   Ref: https://stackoverflow.com/a/26694162
-LB_ENDPOINT_IP=$(ip -4 addr show enp0s3 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
-LB_ENDPOINT_PORT=26443
 CERT_KEY=$(kubeadm certs certificate-key)
-
-#####################
-#  INSTALL HAPROXY  #
-#####################
-
-# Install latest stable version of HAProxy
-apt-get install --no-install-recommends software-properties-common
-add-apt-repository ppa:vbernat/haproxy-2.5 -y
-apt-get update
-apt-get install haproxy -y
-
-# Overwrite HAProxy settings
-mv /etc/haproxy/haproxy.cfg /etc/haproxy/haproxy.cfg.bak
-curl https://raw.githubusercontent.com/haeramkeem/infra-exercise/main/KubernetesEnv/online-ubuntu-20.04-HA/haproxy.cfg -o /etc/haproxy/haproxy.cfg
-systemctl restart haproxy
 
 #####################
 #  INIT KUBERNETES  #
 #####################
 
-# Join cluster using `init_output.log`
-#   Generated token is automatically deleted after 1s
+# Initiate cluster
 kubeadm init \
     --certificate-key $CERT_KEY \
-    --token-ttl "1s" \
     --pod-network-cidr $POD_CIDR \
     --apiserver-advertise-address $LB_ENDPOINT_IP \
     --upload-certs \
