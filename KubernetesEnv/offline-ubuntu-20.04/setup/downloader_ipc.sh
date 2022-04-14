@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+########################
+#  CHECK ENV VALIDITY  #
+########################
+
 # Check superuser
 if [[ $(whoami) != "root" ]]
 then
@@ -8,12 +12,15 @@ then
     exit 1
 fi
 
-###########################
-#  LOAD META.YAML CONFIG  #
-###########################
+#####################
+#  LOCAL FUNCTIONS  #
+#####################
 
 # Bash YAML parser
 #   ref: https://stackoverflow.com/a/21189044
+#   usage:
+#       $1: filepath
+#       $2: variable prefix
 function parse_yaml {
     local prefix=$2
     local s='[[:space:]]*' w='[a-zA-Z0-9_]*' fs=$(echo @|tr @ '\034')
@@ -30,6 +37,25 @@ function parse_yaml {
         }
     }'
 }
+
+# download .deb from apt
+#   download the packages with all dependencies included from apt
+#       `grep -v "i386"` will discard all dependencies with i386 architecture
+#       ref: https://stackoverflow.com/a/45489718
+#   usage:
+#       $1: package name (only one permitted)
+#       $2: package save path
+function dl_deb {
+    apt-get download $(apt-cache depends --recurse --no-recommends --no-suggests \
+        --no-conflicts --no-breaks --no-replaces --no-enhances \
+        --no-pre-depends ${1} | grep "^\w" | grep -v "i386")
+    mkdir -pv $2
+    mv ./*.deb $2/.
+}
+
+###########################
+#  LOAD META.YAML CONFIG  #
+###########################
 
 # Parse `meta.yaml`
 eval $(parse_yaml meta.yaml "META_")
@@ -93,15 +119,9 @@ mkdir -pv $IMG_PATH
 ##################################
 
 # download docker ce
-#   download the packages will all dependencies included from apt
-#       `grep -v "i386"` will discard all dependencies with i386 architecture
-#       ref: https://stackoverflow.com/a/45489718
-DOCKER_PKGS="docker-ce=$DOCKER_CE docker-ce-cli=$DOCKER_CLI containerd.io=$CONTAINERD"
-apt-get download $(apt-cache depends --recurse --no-recommends --no-suggests \
-    --no-conflicts --no-breaks --no-replaces --no-enhances \
-    --no-pre-depends ${DOCKER_PKGS} | grep "^\w" | grep -v "i386")
-mkdir -pv $DEB_PATH/docker
-mv ./*.deb $DEB_PATH/docker/.
+eval $(dl_deb "docker-ce=$DOCKER_CE" "$DEB_PATH/docker")
+eval $(dl_deb "docker-ce-cli=$DOCKER_CLI" "$DEB_PATH/docker")
+eval $(dl_deb "containerd.io=$CONTAINERD" "$DEB_PATH/docker")
 
 # install docker ce
 dpkg -i $DEB_PATH/docker/*.deb
@@ -126,12 +146,9 @@ docker save nginx > $IMG_PATH/nginx.tar
 #########################
 
 # download kubelet, kubeadm, kubectl
-K8S_PKGS="kubelet=$KUBELET kubectl=$KUBECTL kubeadm=$KUBEADM"
-apt-get download $(apt-cache depends --recurse --no-recommends --no-suggests\
-    --no-conflicts --no-breaks --no-replaces --no-enhances\
-    --no-pre-depends ${K8S_PKGS} | grep "^\w" | grep -v "i386")
-mkdir -pv $DEB_PATH/k8s
-mv ./*.deb $DEB_PATH/k8s/.
+eval $(dl_deb "kubelet=$KUBELET" "$DEB_PATH/k8s")
+eval $(dl_deb "kubectl=$KUBECTL" "$DEB_PATH/k8s")
+eval $(dl_deb "kubeadm=$KUBEADM" "$DEB_PATH/k8s")
 
 # download kubernetes images
 #   required image list
