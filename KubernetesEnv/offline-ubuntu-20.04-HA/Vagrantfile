@@ -31,7 +31,9 @@ Vagrant.configure("2") do |config|
 
       # Make executable
       cfg.vm.provision "shell", inline: "chmod 711 /home/vagrant/setup/*.sh"
-      cfg.vm.provision "shell", inline: "sed -i -e 's/\r$//' /home/vagrant/setup/*"
+      cfg.vm.provision "shell", inline: "sed -i -e 's/\r$//' /home/vagrant/setup/*.sh"
+      cfg.vm.provision "shell", inline: "sed -i -e 's/\r$//' /home/vagrant/setup/*.yaml"
+      cfg.vm.provision "shell", inline: "sed -i -e 's/\r$//' /home/vagrant/setup/src/*"
     end
 
 end
