@@ -46,9 +46,9 @@ function parse_yaml {
 #       $1: package name (only one permitted)
 #       $2: package save directory path (mkdir if path not found)
 function dl_deb {
-    apt-get download $(apt-cache depends --recurse --no-recommends --no-suggests \
-        --no-conflicts --no-breaks --no-replaces --no-enhances \
-        --no-pre-depends ${1} | grep "^\w" | grep -v "i386")
+    apt-get download $(apt-cache depends --recurse --no-recommends --no-suggests --no-conflicts \
+        --no-breaks --no-replaces --no-enhances --no-pre-depends ${1} | \
+        grep "^\w" | grep -v "i386")
     mkdir -pv $2
     mv ./*.deb $2/.
 }
@@ -122,9 +122,9 @@ mkdir -pv $IMG_PATH
 ##################################
 
 # download docker ce
-eval $(dl_deb "docker-ce=$DOCKER_CE" "$DEB_PATH/docker")
-eval $(dl_deb "docker-ce-cli=$DOCKER_CLI" "$DEB_PATH/docker")
-eval $(dl_deb "containerd.io=$CONTAINERD" "$DEB_PATH/docker")
+dl_deb "docker-ce=$DOCKER_CE" "$DEB_PATH/docker"
+dl_deb "docker-ce-cli=$DOCKER_CLI" "$DEB_PATH/docker"
+dl_deb "containerd.io=$CONTAINERD" "$DEB_PATH/docker"
 
 # install docker ce
 dpkg -i $DEB_PATH/docker/*.deb
@@ -149,9 +149,9 @@ docker save nginx > $IMG_PATH/nginx.tar
 #########################
 
 # download kubelet, kubeadm, kubectl
-eval $(dl_deb "kubelet=$KUBELET" "$DEB_PATH/k8s")
-eval $(dl_deb "kubectl=$KUBECTL" "$DEB_PATH/k8s")
-eval $(dl_deb "kubeadm=$KUBEADM" "$DEB_PATH/k8s")
+dl_deb "kubelet=$KUBELET" "$DEB_PATH/k8s"
+dl_deb "kubectl=$KUBECTL" "$DEB_PATH/k8s"
+dl_deb "kubeadm=$KUBEADM" "$DEB_PATH/k8s"
 
 # download kubernetes images
 #   required image list
@@ -206,5 +206,5 @@ add-apt-repository ppa:vbernat/haproxy-$HAPROXY_SHORT -y
 apt-get update
 
 # Download package
-eval $(dl_deb "haproxy=$HAPROXY_LONG" "$DEB_PATH/haproxy")
-eval $(dl_deb "keepalived=$KA_VER" "$DEB_PATH/keepalived")
+dl_deb "haproxy=$HAPROXY_LONG" "$DEB_PATH/haproxy"
+dl_deb "keepalived=$KA_VER" "$DEB_PATH/keepalived"
