@@ -98,6 +98,10 @@ echo "deb [arch=$(dpkg --print-architecture)\
 curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
 echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | tee /etc/apt/sources.list.d/kubernetes.list
 
+# Register HAProxy rep
+apt-get install --no-install-recommends software-properties-common
+add-apt-repository ppa:vbernat/haproxy-$HAPROXY_SHORT -y
+
 # Update apt
 apt-get update
 
@@ -128,11 +132,11 @@ dl_deb "containerd.io=$CONTAINERD" "$DEB_PATH/docker"
 
 # install docker ce
 dpkg -i $DEB_PATH/docker/*.deb
-# Some environment like `WSL` systemd isn't used to initiate and manage system
+# Some environment like `WSL`, systemd isn't used to initiate and manage system
 #   In this case, use `servive` command instead
 #   Ref: https://dev.to/bowmanjd/install-docker-on-windows-wsl-without-docker-desktop-34m9
 #   Check init method: https://unix.stackexchange.com/a/121665
-if `pidof systemd`
+if `pidof systemd &> /dev/null`
 then
     systemctl enable --now docker.service
 else
@@ -199,11 +203,6 @@ docker save registry:2 > $IMG_PATH/registry.tar
 ##################################
 #  DOWNLOAD HAPROXY / KEEPALIVED #
 ##################################
-
-# Register HAProxy registry
-apt-get install --no-install-recommends software-properties-common
-add-apt-repository ppa:vbernat/haproxy-$HAPROXY_SHORT -y
-apt-get update
 
 # Download package
 dl_deb "haproxy=$HAPROXY_LONG" "$DEB_PATH/haproxy"

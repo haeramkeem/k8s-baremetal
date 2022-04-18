@@ -93,8 +93,7 @@ case "$1" in
         echo "MODE: Single master setup"
 
         # Init kubernetes cluster
-        eval "$BASE_COMMAND \
-            --apiserver-advertise-address $CURR_IP"
+        $BASE_COMMAND --apiserver-advertise-address $CURR_IP
         ;;
 
     ##########################
@@ -105,18 +104,10 @@ case "$1" in
         echo "MODE: Multi-master setup with single load balancer"
 
         # Install HAProxy
-        eval $(ins_haproxy \
-            ${LB_FE_PORT} \
-            ${LB_BE_COUNT} \
-            ${LB_BE_IP_BASE} \
-            ${LB_BE_HNAME_BASE} \
-            ${LB_BE_PORT})
+        ins_haproxy ${LB_FE_PORT} ${LB_BE_COUNT} ${LB_BE_IP_BASE} ${LB_BE_HNAME_BASE} ${LB_BE_PORT}
 
         # Init kubernetes cluster
-        eval "$BASE_COMMAND \
-            --apiserver-advertise-address $CURR_IP \
-            --upload-certs \
-            --control-plane-endpoint $CURR_IP:$LB_FE_PORT"
+        $BASE_COMMAND --apiserver-advertise-address $CURR_IP --upload-certs --control-plane-endpoint $CURR_IP:$LB_FE_PORT
         ;;
 
     ########################
@@ -127,12 +118,7 @@ case "$1" in
         echo "MODE: Multi-master setup with dual active-standby load balancer"
 
         # Install HAProxy
-        eval $(ins_haproxy \
-            ${LB_FE_PORT} \
-            ${LB_BE_COUNT} \
-            ${LB_BE_IP_BASE} \
-            ${LB_BE_HNAME_BASE} \
-            ${LB_BE_PORT})
+        ins_haproxy ${LB_FE_PORT} ${LB_BE_COUNT} ${LB_BE_IP_BASE} ${LB_BE_HNAME_BASE} ${LB_BE_PORT}
 
         # Install Keepalived
         dpkg -i ./debs/keepalived/*.deb
@@ -142,10 +128,7 @@ case "$1" in
         systemctl restart keepalived
 
         # Init kubernetes cluster
-        eval "$BASE_COMMAND \
-            --apiserver-advertise-address $APISERVER_VIP \
-            --upload-certs \
-            --control-plane-endpoint $APISERVER_VIP:$LB_FE_PORT"
+        $BASE_COMMAND --apiserver-advertise-address $APISERVER_VIP --upload-certs --control-plane-endpoint $APISERVER_VIP:$LB_FE_PORT
         ;;
 
     ###########################
@@ -199,7 +182,7 @@ if [[ $1 != "" ]]; then
         dest/join_as_master.offline.sh
 
     # Uncomment kube config setup command
-    sed -i "s/#%KUBE_CFG%" dest/join_as_master.offline.sh
+    sed -i "s/#%KUBE_CFG%//g" dest/join_as_master.offline.sh
 
 fi
 
@@ -212,14 +195,14 @@ if [[ $1 == "-A" || $1 == "--active-standby" ]]; then
         dest/join_as_sorry.offline.sh
 
     # Uncomment LB and keepalived installation command
-    sed -i "s/#%DUAL_LB%" dest/join_as_sorry.offline.sh
+    sed -i "s/#%DUAL_LB%//g" dest/join_as_sorry.offline.sh
 
     # Uncomment kube config setup command
-    sed -i "s/#%KUBE_CFG%" dest/join_as_sorry.offline.sh
+    sed -i "s/#%KUBE_CFG%//g" dest/join_as_sorry.offline.sh
 
     # Prepare HAProxy installation
     #   Move HAProxy packages
-    mv ./debs/haproxy ./src/haproxy
+    mv ./debs/haproxy ./dest/haproxy
     #   Move HAProxy config file
     cat ./src/haproxy.cfg.template | \
         sed "s/{APISERVER_DEST_PORT}/$LB_FE_PORT/g" > dest/haproxy.cfg
@@ -230,7 +213,7 @@ if [[ $1 == "-A" || $1 == "--active-standby" ]]; then
 
     # Prepare keepalived installation
     #   Move keepalived packages
-    mv ./debs/keepalived ./src/keepalived
+    mv ./debs/keepalived ./dest/keepalived
     #   Move keepalived config file
     cat ./src/keepalived.sorry.conf | \
         sed "s/{NODE_NIC}/$NODE_NIC/g" > dest/keepalived.conf

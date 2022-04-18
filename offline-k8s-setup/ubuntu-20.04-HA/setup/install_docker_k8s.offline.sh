@@ -72,9 +72,9 @@ sysctl --system
 
 # Set local DNS - this will make communication between nodes with hostname instead of IP
 for (( i=1; i<=$MASTER_COUNT; i++ )); do
-    echo "$MASTER_IP_BASE$i $MASTER_HNAME_BASE$1" >> /etc/hosts; done
+    echo "$MASTER_IP_BASE$i $MASTER_HNAME_BASE$i" >> /etc/hosts; done
 for (( i=1; i<=$WORKER_COUNT; i++ )); do
-    echo "$WORKER_IP_BASE$i $WORKER_HNAME_BASE$1" >> /etc/hosts; done
+    echo "$WORKER_IP_BASE$i $WORKER_HNAME_BASE$i" >> /etc/hosts; done
 
 #######################
 #  INSTALL DOCKER CE  #
