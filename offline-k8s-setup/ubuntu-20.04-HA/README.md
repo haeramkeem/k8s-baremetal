@@ -1,32 +1,48 @@
 # Highly Available Kubernetes Cluster
 
 ## Prerequisite
-* All the nodes require Docker, Kubelet, Kubeadm and Kubectl.
-* Installation script is prepared in `install_all.sh`.
-* Or, u can execute the script with the command below:
+* "Vagrant" must be installed on your host computer.
+* As a VM provider, "VirtualBox" must be installed on your host computer.
+* 4 VMs are used in this exercise; 3 master nodes and 1 worker node. Thus, all the VMs must be prepared beforehand.
+## Online node setup
+* Type `vagrant up` will make ubuntu 20.04 online node VM with all scripts copied.
+* Connect to a online node via `vagrant ssh` and execute the command below:
 ```bash
-bash <(curl -sL https://raw.githubusercontent.com/haeramkeem/infra-exercise/main/KubernetesEnv/online-ubuntu-20.04-HA/install_all.sh)
+cd ~/setup
+./downloader.online.sh
 ```
-## Triple control plane nodes with single HAProxy load balancer
-* A frontend node requires HAProxy with its configuration.
-* Installation script is prepared in `install_haproxy.sh`.
-* Configuration for HAProxy is prepared in `haproxy.cfg`.
-* This configuration opens the `26443` port for endpoint port and balances the traffic to `6443` port of backend nodes by RR.
-* U can executes the `install_haproxy.sh` script without downloading it:
+* After downloading all the packages, copy `setup` directory to offline nodes.
+## Offline node setup
+* Docker CE, Kubelet, Kubectl, and Kubeadm must be installed in all of the offline nodes.
+* Executing the command below will install the Docker and Kubernetes components.
 ```bash
-bash <(curl -sL https://raw.githubusercontent.com/haeramkeem/infra-exercise/main/KubernetesEnv/online-ubuntu-20.04-HA/install_haproxy.sh)
+./install_docker_k8s.offline.sh
 ```
-## Triple control plane nodes with double HAProxy load balancer and keepalived
-* The keepalived real server and sorry server both requires the HAProxy load balancer.
-* Use `install_haproxy.sh` to install HAProxy.
-* Installation script for `keepalived` is prepared in `install_keepalived.sh`.
-* This script requires additional flag: `--real` for the real server and `--sorry` for the sorry server.
-* The keepalived process generates a VIP (Virtual IP), which is `192.168.1.10` (u can modify it in the `keepalived.*.config` files.
-* The command below initiates the keepalived process for real server:
+## Initiate cluster
+* Executing `init_cluster.offline.sh` will initiate cluster.
+* When the option is not provided, this script will consider as a single master setup.
+* If you want to initiate the cluster with the multiple master setup and no backup load balancer, use `-L` or `--load-balance` option:
 ```bash
-bash <(curl -sL https://raw.githubusercontent.com/haeramkeem/infra-exercise/main/KubernetesEnv/online-ubuntu-20.04-HA/install_keepalived.sh) --real
+# or `./init_cluster.offline.sh --load-balance`
+./init_cluster.offline.sh -L
 ```
-* The command below initiates the keepalived process for sorry server:
+* If you want to initiate the cluster with the multiple master setup and additional load balancer as a backup, use `-A` or `--active-standby` option:
 ```bash
-bash <(curl -sL https://raw.githubusercontent.com/haeramkeem/infra-exercise/main/KubernetesEnv/online-ubuntu-20.04-HA/install_keepalived.sh) --sorry
+# or you can: `./init_cluster.offline.sh --active-standby`
+./init_cluster.offline.sh -A
+```
+* Executing the script will generate `dest` directory. It contains dependant packages and scripts for joining the cluster.
+* Copy `dest` directory to all other nodes to join the cluster.
+## Join cluster
+* If you want to join current node to the cluster as a worker node, use `join_as_a_worker.offline.sh` script.
+```bash
+./join_as_a_worker.offline.sh
+```
+* If you want to join current node to the cluster as a master node (with no additional load balancer installed), use `join_as_a_master.offline.sh` script.
+```bash
+./join_as_a_master.offline.sh
+```
+* If you want to join current node to the cluster as a master node with additional backup load balancer installed, use `join_as_a_sorry.offline.sh` script.
+```bash
+./join_as_a_sorry.offline.sh
 ```
