@@ -1,0 +1,10 @@
+# Ref: https://kubernetes.io/docs/concepts/cluster-administration/logging/
+apiVersion: v1
+kind: Pod
+metadata:
+  name: counter
+spec:
+  containers:
+  - name: count
+    image: 192.168.1.10:28443/busybox
+    args: [/bin/sh, -c, 'i=0; while true; do echo "$i: $(date)"; i=$((i+1)); sleep 1; done']
