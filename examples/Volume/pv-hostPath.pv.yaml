@@ -1,0 +1,16 @@
+# Example for hostPath PV manifest
+#   Source: https://k8s.io/examples/pods/storage/pv-volume.yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-host-path
+  labels:
+    type: local
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 100Mi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/data"

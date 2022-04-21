@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nfs-pvc-deploy
+  name: using-nfs-pvc
 spec:
-  replicas: 4
+  replicas: 3
   selector:
     matchLabels:
-      app: nfs-pvc-deploy
+      app: using-nfs-pvc
   template:
     metadata:
       labels:
-        app: nfs-pvc-deploy
+        app: using-nfs-pvc
     spec:
       containers:
       - name: audit-trail
@@ -21,4 +21,4 @@ spec:
       volumes:
       - name: nfs-vol
         persistentVolumeClaim:
-          claimName: nfs-pvc
+          claimName: pvc-nfs

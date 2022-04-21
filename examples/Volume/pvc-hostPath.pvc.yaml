@@ -1,0 +1,13 @@
+# Example for PVC of hostPath-PV
+#   Source: https://k8s.io/examples/pods/storage/pv-claim.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-host-path
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 30Mi

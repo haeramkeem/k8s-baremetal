@@ -1,0 +1,12 @@
+# Example for PVC of nfs-PV
+#   Source: https://raw.githubusercontent.com/sysnet4admin/_Book_k8sInfra/main/ch3/3.4.3/nfs-pvc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-nfs
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Mi

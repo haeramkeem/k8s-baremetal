@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: using-host-path-pvc
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: using-host-path-pvc
+  template:
+    metadata:
+      labels:
+        app: using-host-path-pvc
+    spec:
+      containers:
+        - name: task-pv-container
+          image: nginx
+          ports:
+            - containerPort: 80
+              name: "http-server"
+          volumeMounts:
+            - mountPath: "/usr/share/nginx/html"
+              name: pv-storage
+      volumes:
+        - name: pv-storage
+          persistentVolumeClaim:
+            claimName: pvc-host-path
