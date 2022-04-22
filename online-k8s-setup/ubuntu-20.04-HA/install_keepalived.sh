@@ -21,4 +21,5 @@ apt-get install keepalived -y
 # Overwrite keepalived configuration
 rm -rf /etc/keepalived/keepalived.conf
 curl https://raw.githubusercontent.com/haeramkeem/infra-exercise/main/online-k8s-setup/ubuntu-20.04-HA/keepalived.$SERVER.conf -o /etc/keepalived/keepalived.conf
+systemctl enable --now keepalived
 systemctl restart keepalived
