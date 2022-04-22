@@ -12,5 +12,5 @@ apt-get install haproxy -y
 
 # Overwrite HAProxy settings
 rm -rf /etc/haproxy/haproxy.cfg
-curl https://raw.githubusercontent.com/haeramkeem/infra-exercise/main/KubernetesEnv/online-ubuntu-20.04-HA/haproxy.cfg -o /etc/haproxy/haproxy.cfg
+curl https://raw.githubusercontent.com/haeramkeem/infra-exercise/main/online-k8s-setup/ubuntu-20.04-HA/install_haproxy.sh -o /etc/haproxy/haproxy.cfg
 systemctl restart haproxy
