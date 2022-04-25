@@ -20,7 +20,7 @@ roles:
 #  NUMBER OF REPLICAS AND MASTER NODES  #
 #########################################
 replicas: 2
-minimumMasterNodes: 3
+minimumMasterNodes: 2
 
 esMajorVersion: ""
 
@@ -106,11 +106,11 @@ esJavaOpts: "" # example: "-Xmx1g -Xms1g"
 #####################
 resources:
   requests:
-    cpu: "100m"
+    cpu: "50m"
     memory: "512Mi"
   limits:
     cpu: "100m"
-    memory: "512Mi"
+    memory: "1Gi"
 
 initResources:
   requests:
