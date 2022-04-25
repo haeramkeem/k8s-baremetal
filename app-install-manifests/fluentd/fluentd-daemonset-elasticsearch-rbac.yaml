@@ -1,3 +1,43 @@
+# Ref: https://github.com/fluent/fluentd-kubernetes-daemonset/blob/master/fluentd-daemonset-elasticsearch-rbac.yaml
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  #labels:
+    #k8s-app: fluentd
+  name: fluentd
+  namespace: kube-system
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: fluentd
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - namespaces
+  verbs:
+  - get
+  - list
+  - watch
+
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: fluentd
+roleRef:
+  kind: ClusterRole
+  name: fluentd
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+- kind: ServiceAccount
+  name: fluentd
+  namespace: kube-system
+---
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -6,6 +46,7 @@ metadata:
   labels:
     k8s-app: fluentd-logging
     version: v1
+  #kubernetes.io/cluster-service: "true"
 spec:
   selector:
     matchLabels:
@@ -17,6 +58,8 @@ spec:
         k8s-app: fluentd-logging
         version: v1
     spec:
+      serviceAccount: fluentd
+      serviceAccountName: fluentd
       tolerations:
       - key: node-role.kubernetes.io/master
         effect: NoSchedule
@@ -24,7 +67,6 @@ spec:
       - name: fluentd
         image: fluent/fluentd-kubernetes-daemonset:v1-debian-elasticsearch
         env:
-          # Modify Elasticsearch domain
           - name:  FLUENT_ELASTICSEARCH_HOST
             value: "elasticsearch-master.default.svc.cluster.local"
           - name:  FLUENT_ELASTICSEARCH_PORT
@@ -35,6 +77,9 @@ spec:
           #   https://github.com/fluent/fluentd-docker-image/issues/90#issuecomment-388097804
           - name: FLUENTD_UID
             value: "0"
+          #-name: FLUENTD_SYSTEMD_CONF
+             #value: "disable"
+          # <-- Disable options
           # Option to configure elasticsearch plugin with self signed certs
           # ================================================================
           # - name: FLUENT_ELASTICSEARCH_SSL_VERIFY
@@ -49,12 +94,7 @@ spec:
           #   value: "elastic"
           # - name: FLUENT_ELASTICSEARCH_PASSWORD
           #   value: "changeme"
-          # Logz.io Authentication
-          # ======================
-          # - name: LOGZIO_TOKEN
-          #   value: "ThisIsASuperLongToken"
-          # - name: LOGZIO_LOGTYPE
-          #   value: "kubernetes"
+          # -->
         resources:
           limits:
             memory: 200Mi

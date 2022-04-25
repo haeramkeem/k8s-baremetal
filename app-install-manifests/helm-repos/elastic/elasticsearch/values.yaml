@@ -19,7 +19,7 @@ roles:
 #  Customized #1                        #
 #  NUMBER OF REPLICAS AND MASTER NODES  #
 #########################################
-replicas: 1
+replicas: 2
 minimumMasterNodes: 3
 
 esMajorVersion: ""
@@ -107,10 +107,10 @@ esJavaOpts: "" # example: "-Xmx1g -Xms1g"
 resources:
   requests:
     cpu: "100m"
-    memory: "256Mi"
+    memory: "512Mi"
   limits:
     cpu: "100m"
-    memory: "256Mi"
+    memory: "512Mi"
 
 initResources:
   requests:
@@ -265,8 +265,6 @@ readinessProbe:
   timeoutSeconds: 5
 
 # https://www.elastic.co/guide/en/elasticsearch/reference/7.17/cluster-health.html#request-params wait_for_status
-# Use `wait_for_status=yellow` for single replica
-#   Ref: https://github.com/elastic/helm-charts/issues/783#issuecomment-701037663
 clusterHealthCheckParams: "wait_for_status=yellow&timeout=1s"
 
 ## Use an alternate scheduler.
