@@ -89,16 +89,12 @@ helm repo add grafana https://grafana.github.io/helm-charts
 helm repo update
 
 # NFS Provisioner
-nfsp="nfs-subdir-external-provisioner" # Name is so fucking long
+nfsp="nfs-subdir-external-provisioner" # The name is so fucking long
 helm pull $nfsp/$nfsp
-tar -xzvf $nfsp*.tgz -C $HLM_PATH
-rm -rf $nfsp*.tgz
-cp src/nfs-provisioner.values.yaml $HLM_PATH/$nfsp/values.yaml
-helm template $HLM_PATH/$nfsp | dlDockerImages $IMG_PATH
+mv $nfsp-*.tgz $HLM_PATH/nfs-provisioner.tgz
+helm template $HLM_PATH/nfs-provisioner.tgz -f src/nfs-provisioner.values.yaml | dlDockerImages $IMG_PATH
 
-# Elasticsearch
+# Loki-stack
 helm pull grafana/loki-stack
-tar -xzvf loki-stack*.tgz -C $HLM_PATH
-rm -rf loki-stack*.tgz
-cp src/loki-stack.values.yaml $HLM_PATH/loki-stack/values.yaml
-helm template $HLM_PATH/loki-stack | dlDockerImages $IMG_PATH
+mv loki-stack-*.tgz $HLM_PATH/loki-stack.tgz
+helm template $HLM_PATH/loki-stack.tgz -f src/loki-stack.values.yaml | dlDockerImages $IMG_PATH
