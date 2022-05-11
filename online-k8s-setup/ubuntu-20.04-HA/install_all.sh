@@ -8,6 +8,9 @@ WORKERS=1
 MASTER_IPBASE="192.168.1.10"
 WORKER_IPBASE="192.168.1.20"
 
+# Since Kubernetes v1.24 removes dockershim, use v1.23.5-00 instead
+KUBE_VER="1.23.5-00"
+
 #########################
 #  BASIC CONFIGURATION  #
 #########################
@@ -98,5 +101,5 @@ systemctl enable --now docker
 ########################
 #  INSTALL KUBERNETES  #
 ########################
-apt-get install -y kubelet kubeadm kubectl
+apt-get install -y kubelet=$KUBE_VER kubeadm=$KUBE_VER kubectl=$KUBE_VER
 systemctl enable --now kubelet
