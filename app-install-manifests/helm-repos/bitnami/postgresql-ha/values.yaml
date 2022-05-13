@@ -28,9 +28,13 @@ global:
   imagePullSecrets: []
   storageClass: ""
   postgresql:
+    ###########################
+    #  CUSTOMIZED #1          #
+    #  Username and password  #
+    ###########################
     username: "harbor"
     password: "Harbor12345"
-    database: "registry notary_server notary_signer"
+    database: ""
     repmgrUsername: ""
     repmgrPassword: ""
     repmgrDatabase: ""
@@ -548,7 +552,16 @@ postgresql:
   ##      #!/bin/sh
   ##      echo "Do something."
   ##
-  initdbScripts: {}
+  #
+  ############################################
+  #  CUSTOMIZED #2                           #
+  #  Create database required for HA Harbor  #
+  ############################################
+  initdbScripts:
+    init_harbor_db.sql: |
+      CREATE DATABASE registry OWNER harbor;
+      CREATE DATABASE notary_server OWNER harbor;
+      CREATE DATABASE notary_signer OWNER harbor;
   ## @param postgresql.initdbScriptsCM ConfigMap with scripts to be run at first boot
   ## NOTE: This will override initdbScripts
   ##
