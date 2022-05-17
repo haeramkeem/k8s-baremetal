@@ -112,7 +112,7 @@ auth:
   enabled: true
   ## @param auth.sentinel Enable password authentication on sentinels too
   ##
-  sentinel: true
+  sentinel: false ## MODIFIED from 'false' to 'true' ##
   ## @param auth.password Redis&trade; password
   ## Defaults to a random 10-character alphanumeric string if not set
   ##
