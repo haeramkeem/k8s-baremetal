@@ -28,12 +28,8 @@ global:
   imagePullSecrets: []
   storageClass: ""
   postgresql:
-    ###########################
-    #  CUSTOMIZED #1          #
-    #  Username and password  #
-    ###########################
-    username: "harbor"
-    password: "Harbor12345"
+    username: "harbor" ## CUSTOMIZED from "" to "harbor" ##
+    password: "Harbor12345" ## CUSTOMIZED from "" to "Harbor12345" ##
     database: ""
     repmgrUsername: ""
     repmgrPassword: ""
@@ -104,7 +100,7 @@ postgresql:
   image:
     registry: docker.io
     repository: bitnami/postgresql-repmgr
-    tag: 14.2.0-debian-10-r81
+    tag: 13.6.0-debian-10-r91 ## CUSTOMIZED from "14.3.0-debian-10-r1" to "13.6.0-debian-10-r91" ##
     ## Specify a imagePullPolicy. Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
     ## ref: https://kubernetes.io/docs/user-guide/images/#pre-pulling-images
     ##
@@ -552,12 +548,7 @@ postgresql:
   ##      #!/bin/sh
   ##      echo "Do something."
   ##
-  #
-  ############################################
-  #  CUSTOMIZED #2                           #
-  #  Create database required for HA Harbor  #
-  ############################################
-  initdbScripts:
+  initdbScripts: 
     init_harbor_db.sql: |
       CREATE DATABASE registry OWNER harbor;
       CREATE DATABASE notary_server OWNER harbor;
@@ -611,7 +602,7 @@ pgpool:
   image:
     registry: docker.io
     repository: bitnami/pgpool
-    tag: 4.3.1-debian-10-r72
+    tag: 4.3.1-debian-10-r81
     ## Specify a imagePullPolicy. Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
     ## ref: https://kubernetes.io/docs/user-guide/images/#pre-pulling-images
     ##
@@ -883,7 +874,7 @@ pgpool:
   ## Authentication method for pgpool container (PGPOOL_AUTHENTICATION_METHOD)
   ## @param pgpool.authenticationMethod Pgpool authentication method. Use 'md5' for PSQL < 14.
   ##
-  authenticationMethod: scram-sha-256
+  authenticationMethod: md5 ## MODIFIED 'scram-sha-256' to 'md5' ##
   ## @param pgpool.logConnections Log all client connections (PGPOOL_ENABLE_LOG_CONNECTIONS)
   ## ref: https://github.com/bitnami/bitnami-docker-pgpool#configuration
   ##
@@ -1103,7 +1094,7 @@ metrics:
   image:
     registry: docker.io
     repository: bitnami/postgres-exporter
-    tag: 0.10.1-debian-10-r103
+    tag: 0.10.1-debian-10-r111
     ## Specify a imagePullPolicy. Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
     ## ref: https://kubernetes.io/docs/user-guide/images/#pre-pulling-images
     ##
@@ -1343,7 +1334,7 @@ volumePermissions:
   image:
     registry: docker.io
     repository: bitnami/bitnami-shell
-    tag: 10-debian-10-r416
+    tag: 10-debian-10-r424
     ## Specify a imagePullPolicy. Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
     ## ref: https://kubernetes.io/docs/user-guide/images/#pre-pulling-images
     ##
