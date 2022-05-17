@@ -18,7 +18,7 @@ global:
   imagePullSecrets: []
   storageClass: ""
   redis:
-    password: "Harbor12345" ## MODIFIED from '' to 'Harbor12345' ##
+    password: "Harbor12345" ## MODIFIED from '' ##
 
 ## @section Common parameters
 ##
@@ -112,7 +112,7 @@ auth:
   enabled: true
   ## @param auth.sentinel Enable password authentication on sentinels too
   ##
-  sentinel: false ## MODIFIED from 'false' to 'true' ##
+  sentinel: false ## MODIFIED from 'false' ##
   ## @param auth.password Redis&trade; password
   ## Defaults to a random 10-character alphanumeric string if not set
   ##
@@ -886,7 +886,7 @@ sentinel:
   ## IMPORTANT: this will disable the master and replicas services and
   ## create a single Redis&trade; service exposing both the Redis and Sentinel ports
   ##
-  enabled: true ## MODIFIED from 'false' to 'true' ##
+  enabled: true ## MODIFIED from 'false' ##
   ## Bitnami Redis&trade; Sentinel image version
   ## ref: https://hub.docker.com/r/bitnami/redis-sentinel/tags/
   ## @param sentinel.image.registry Redis&trade; Sentinel image registry
@@ -918,7 +918,7 @@ sentinel:
     debug: false
   ## @param sentinel.masterSet Master set name
   ##
-  masterSet: harbor-redis-master ## MODIFIED from 'mymaster' to 'harbor-redis-master' ##
+  masterSet: harbor-redis-master ## MODIFIED from 'mymaster' ##
   ## @param sentinel.quorum Sentinel Quorum
   ##
   quorum: 2

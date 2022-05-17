@@ -28,8 +28,8 @@ global:
   imagePullSecrets: []
   storageClass: ""
   postgresql:
-    username: "harbor" ## CUSTOMIZED from "" to "harbor" ##
-    password: "Harbor12345" ## CUSTOMIZED from "" to "Harbor12345" ##
+    username: "harbor" ## MODIFIED from '' ##
+    password: "Harbor12345" ## MODIFIED from '' ##
     database: ""
     repmgrUsername: ""
     repmgrPassword: ""
@@ -100,7 +100,7 @@ postgresql:
   image:
     registry: docker.io
     repository: bitnami/postgresql-repmgr
-    tag: 13.6.0-debian-10-r91 ## CUSTOMIZED from "14.3.0-debian-10-r1" to "13.6.0-debian-10-r91" ##
+    tag: 13.6.0-debian-10-r91 ## MODIFIED from '14.3.0-debian-10-r1' ##
     ## Specify a imagePullPolicy. Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
     ## ref: https://kubernetes.io/docs/user-guide/images/#pre-pulling-images
     ##
@@ -874,7 +874,7 @@ pgpool:
   ## Authentication method for pgpool container (PGPOOL_AUTHENTICATION_METHOD)
   ## @param pgpool.authenticationMethod Pgpool authentication method. Use 'md5' for PSQL < 14.
   ##
-  authenticationMethod: md5 ## MODIFIED 'scram-sha-256' to 'md5' ##
+  authenticationMethod: md5 ## MODIFIED 'scram-sha-256' ##
   ## @param pgpool.logConnections Log all client connections (PGPOOL_ENABLE_LOG_CONNECTIONS)
   ## ref: https://github.com/bitnami/bitnami-docker-pgpool#configuration
   ##
