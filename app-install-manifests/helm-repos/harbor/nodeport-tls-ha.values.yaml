@@ -20,7 +20,7 @@ expose:
     auto:
       # The common name used to generate the certificate, it's necessary
       # when the type isn't "ingress"
-      commonName: "192.168.50.22" ## MODIFIED form '' ##
+      commonName: "192.168.50.22" ## MODIFIED from '' ##
     secret:
       # The name of secret which contains keys named:
       # "tls.crt" - the certificate
