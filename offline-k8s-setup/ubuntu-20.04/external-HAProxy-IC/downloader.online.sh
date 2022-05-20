@@ -115,4 +115,4 @@ cp $CTL_DIR/images/* $WKR_DIR/images/.
 
 # Copy over setup_kubernetes_worker.sh
 sed -i -e 's/\r$//g' /vagrant/setup_kubernetes_worker.sh
-cp /vagrant/setup_kubernetes_worker.sh ${wKR_DIR}/
+cp /vagrant/setup_kubernetes_worker.sh ${WKR_DIR}/
