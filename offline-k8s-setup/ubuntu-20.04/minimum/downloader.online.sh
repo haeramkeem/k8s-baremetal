@@ -12,69 +12,27 @@ then
     exit 1
 fi
 
-#####################
-#  LOCAL FUNCTIONS  #
-#####################
+###################
+#  ENV VARIABLES  #
+###################
 
-# Bash YAML parser
-#   ref: https://stackoverflow.com/a/21189044
-#   usage:
-#       $1: filepath
-#       $2: variable prefix
-function parse_yaml {
-    local prefix=$2
-    local s='[[:space:]]*' w='[a-zA-Z0-9_]*' fs=$(echo @|tr @ '\034')
-    sed -ne "s|^\($s\):|\1|" \
-        -e "s|^\($s\)\($w\)$s:$s[\"']\(.*\)[\"']$s\$|\1$fs\2$fs\3|p" \
-        -e "s|^\($s\)\($w\)$s:$s\(.*\)$s\$|\1$fs\2$fs\3|p"  $1 |
-    awk -F$fs '{
-        indent = length($1)/2;
-        vname[indent] = $2;
-        for (i in vname) {if (i > indent) {delete vname[i]}}
-        if (length($3) > 0) {
-            vn=""; for (i=0; i<indent; i++) {vn=(vn)(vname[i])("_")}
-            printf("%s%s%s=\"%s\"\n", "'$prefix'",vn, $2, $3);
-        }
-    }'
-}
+DOCKER_CE="5:20.10.14~3-0~ubuntu-focal"
+DOCKER_CLI="5:20.10.14~3-0~ubuntu-focal"
+CONTAINERD="1.5.11-1"
+KUBELET="1.23.5-00"
+KUBECTL="1.23.5-00"
+KUBEADM="1.23.5-00"
+API_SERVER="v1.23.5"
+CONTROLLER="v1.23.5"
+SCHEDULER="v1.23.5"
+PROXY="v1.23.5"
+PAUSE="3.6"
+ETCD="3.5.1-0"
+COREDNS="v1.8.6"
+CNI_YAML="https://projectcalico.docs.tigera.io/manifests/calico.yaml"
 
-# download .deb from apt
-#   download the packages with all dependencies included from apt
-#       `grep -v "i386"` will discard all dependencies with i386 architecture
-#       ref: https://stackoverflow.com/a/45489718
-#   usage:
-#       $1: package name (only one permitted)
-#       $2: package save path
-function dl_deb {
-    apt-get download $(apt-cache depends --recurse --no-recommends --no-suggests \
-        --no-conflicts --no-breaks --no-replaces --no-enhances \
-        --no-pre-depends ${1} | grep "^\w" | grep -v "i386")
-    mkdir -pv $2
-    mv ./*.deb $2/.
-}
-
-###########################
-#  LOAD META.YAML CONFIG  #
-###########################
-
-# Parse `meta.yaml`
-eval $(parse_yaml meta.yaml "META_")
-
-# Use short name
-DOCKER_CE=$META_docker_versions_ce
-DOCKER_CLI=$META_docker_versions_cli
-CONTAINERD=$META_docker_versions_containerd
-KUBELET=$META_kubernetes_versions_kubelet
-KUBECTL=$META_kubernetes_versions_kubectl
-KUBEADM=$META_kubernetes_versions_kubeadm
-API_SERVER=$META_kubernetes_versions_kube_apiserver
-CONTROLLER=$META_kubernetes_versions_kube_controller_manager
-SCHEDULER=$META_kubernetes_versions_kube_scheduler
-PROXY=$META_kubernetes_versions_kube_proxy
-PAUSE=$META_kubernetes_versions_pause
-ETCD=$META_kubernetes_versions_etcd
-COREDNS=$META_kubernetes_versions_coredns
-CNI_YAML=$META_cni_yaml
+source <(https://raw.githubusercontent.com/haeramkeem/sh-it/main/func/dl_deb_pkg.sh)
+source <(https://raw.githubusercontent.com/haeramkeem/sh-it/main/func/save_img_from_yaml.sh)
 
 ################################
 #  INSTALL RELATED REPOSITORY  #
@@ -103,7 +61,7 @@ apt-get update
 ######################
 
 # destination path variables
-DST_PATH=.
+DST_PATH=/home/vagrant
 MAN_PATH=$DST_PATH/manifests
 DEB_PATH=$DST_PATH/debs
 IMG_PATH=$DST_PATH/images
@@ -119,9 +77,9 @@ mkdir -pv $IMG_PATH
 ##################################
 
 # download docker ce
-eval $(dl_deb "docker-ce=$DOCKER_CE" "$DEB_PATH/docker")
-eval $(dl_deb "docker-ce-cli=$DOCKER_CLI" "$DEB_PATH/docker")
-eval $(dl_deb "containerd.io=$CONTAINERD" "$DEB_PATH/docker")
+dl_deb_pkg "docker-ce=$DOCKER_CE" "$DEB_PATH/docker"
+dl_deb_pkg "docker-ce-cli=$DOCKER_CLI" "$DEB_PATH/docker"
+dl_deb_pkg "containerd.io=$CONTAINERD" "$DEB_PATH/docker"
 
 # install docker ce
 dpkg -i $DEB_PATH/docker/*.deb
@@ -146,9 +104,9 @@ docker save nginx > $IMG_PATH/nginx.tar
 #########################
 
 # download kubelet, kubeadm, kubectl
-eval $(dl_deb "kubelet=$KUBELET" "$DEB_PATH/k8s")
-eval $(dl_deb "kubectl=$KUBECTL" "$DEB_PATH/k8s")
-eval $(dl_deb "kubeadm=$KUBEADM" "$DEB_PATH/k8s")
+dl_deb_pkg "kubelet=$KUBELET" "$DEB_PATH/k8s"
+dl_deb_pkg "kubectl=$KUBECTL" "$DEB_PATH/k8s"
+dl_deb_pkg "kubeadm=$KUBEADM" "$DEB_PATH/k8s"
 
 # download kubernetes images
 #   required image list
@@ -176,14 +134,7 @@ done
 curl -Lo $MAN_PATH/cni.yaml $CNI_YAML
 
 # download cni-related docker image
-#   as parsing YAML with bash script is limited,
-#   pulling docker image based on object-spec YAML has the possibility of malfunction
-CNI_IMG_LIST=$(sed -nr "s/[^#]\s*image:\s*['\"]?([^'\"]+)['\"]?/\1/gp" $MAN_PATH/cni.yaml | sort -u)
-for CNI_IMG in $CNI_IMG_LIST
-do
-    docker pull $CNI_IMG
-    docker save $CNI_IMG > $IMG_PATH/${CNI_IMG//\//.}.tar
-done
+cat $MAN_PATH/cni.yaml | save_img_from_yaml $IMG_PATH
 
 ###############################################
 #  DOWNLOAD IMAGE REGISTRY (DOCKER REGISTRY)  #
