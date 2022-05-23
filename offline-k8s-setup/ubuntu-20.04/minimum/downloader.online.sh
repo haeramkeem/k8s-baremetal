@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 ########################
 #  CHECK ENV VALIDITY  #
@@ -31,8 +31,8 @@ ETCD="3.5.1-0"
 COREDNS="v1.8.6"
 CNI_YAML="https://projectcalico.docs.tigera.io/manifests/calico.yaml"
 
-source <(https://raw.githubusercontent.com/haeramkeem/sh-it/main/func/dl_deb_pkg.sh)
-source <(https://raw.githubusercontent.com/haeramkeem/sh-it/main/func/save_img_from_yaml.sh)
+source <(curl -sL https://raw.githubusercontent.com/haeramkeem/sh-it/main/func/dl_deb_pkg.sh)
+source <(curl -sL https://raw.githubusercontent.com/haeramkeem/sh-it/main/func/save_img_from_yaml.sh)
 
 ################################
 #  INSTALL RELATED REPOSITORY  #
@@ -61,13 +61,13 @@ apt-get update
 ######################
 
 # destination path variables
-DST_PATH=/home/vagrant
+DST_PATH=/home/vagrant/setup
 MAN_PATH=$DST_PATH/manifests
 DEB_PATH=$DST_PATH/debs
 IMG_PATH=$DST_PATH/images
 
 # create dir
-# mkdir -pv $DST_PATH
+mkdir -pv $DST_PATH
 mkdir -pv $MAN_PATH
 mkdir -pv $DEB_PATH
 mkdir -pv $IMG_PATH
@@ -77,9 +77,7 @@ mkdir -pv $IMG_PATH
 ##################################
 
 # download docker ce
-dl_deb_pkg "docker-ce=$DOCKER_CE" "$DEB_PATH/docker"
-dl_deb_pkg "docker-ce-cli=$DOCKER_CLI" "$DEB_PATH/docker"
-dl_deb_pkg "containerd.io=$CONTAINERD" "$DEB_PATH/docker"
+dl_deb_pkg "$DEB_PATH/docker" <<< "docker-ce=$DOCKER_CE docker-ce-cli=$DOCKER_CLI containerd.io=$CONTAINERD" 
 
 # install docker ce
 dpkg -i $DEB_PATH/docker/*.deb
@@ -104,9 +102,7 @@ docker save nginx > $IMG_PATH/nginx.tar
 #########################
 
 # download kubelet, kubeadm, kubectl
-dl_deb_pkg "kubelet=$KUBELET" "$DEB_PATH/k8s"
-dl_deb_pkg "kubectl=$KUBECTL" "$DEB_PATH/k8s"
-dl_deb_pkg "kubeadm=$KUBEADM" "$DEB_PATH/k8s"
+dl_deb_pkg "$DEB_PATH/k8s" <<< "kubelet=$KUBELET kubectl=$KUBECTL kubeadm=$KUBEADM"
 
 # download kubernetes images
 #   required image list
@@ -136,10 +132,12 @@ curl -Lo $MAN_PATH/cni.yaml $CNI_YAML
 # download cni-related docker image
 cat $MAN_PATH/cni.yaml | save_img_from_yaml $IMG_PATH
 
-###############################################
-#  DOWNLOAD IMAGE REGISTRY (DOCKER REGISTRY)  #
-###############################################
+##############################
+#  COPY INSTALLATION SCRIPT  #
+##############################
 
-# download registry:2
-docker pull registry:2
-docker save registry:2 > $IMG_PATH/registry.tar
+# Copy over /vagrant/installer.offline.sh
+cp -irv /vagrant/installer.offline.sh $DST_PATH/.
+
+# delete CR
+sed -i 's/\r//g' $DST_PATH/installer.offline.sh
