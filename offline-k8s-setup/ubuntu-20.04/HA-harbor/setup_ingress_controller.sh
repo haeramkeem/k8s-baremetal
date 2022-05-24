@@ -13,7 +13,7 @@ setcap cap_net_bind_service=+ep /usr/sbin/haproxy
 # Install the HAProxy Kubernetes Ingress Controller
 cp $ROOT/bin/haproxy-ingress-controller /usr/local/bin/
 
-cp $ROOT/service/haproxy-ingress.service /lib/systemd/system/
+cp $ROOT/etc/haproxy-ingress.service /lib/systemd/system/
 systemctl enable haproxy-ingress
 systemctl start haproxy-ingress
 
@@ -28,6 +28,6 @@ chown -R root:root /root/.kube
 dpkg -i $ROOT/deb/bird/*.deb
 
 # Copy over bird.conf
-cp $ROOT/service/bird.conf /etc/bird/bird.conf
+cp $ROOT/etc/bird.conf /etc/bird/bird.conf
 sudo systemctl enable bird
 sudo systemctl restart bird
