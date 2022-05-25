@@ -1,4 +1,3 @@
-[submodule "online-k8s-setup/ubuntu-18.04/external-HAProxy-IC"]
-	path = online-k8s-setup/ubuntu-18.04/external-HAProxy-IC
-	url = https://github.com/haeramkeem/haproxy-ingress-controller-external-example.git
-	branch = master
+[submodule "clustermaker"]
+	path = clustermaker
+	url = https://github.com/haeramkeem/clustermaker.git
