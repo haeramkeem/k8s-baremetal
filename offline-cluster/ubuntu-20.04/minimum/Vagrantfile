@@ -1,0 +1,32 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  Name = "online-node"
+
+  #=============#
+  # Online Node #
+  #=============#
+
+    config.vm.define Name do |cfg|
+      # Vagrant box Info
+      cfg.vm.box = "ubuntu/focal64"
+      cfg.vm.host_name = Name
+
+      # VirtualBox system resource config
+      cfg.vm.provider "virtualbox" do |vb|
+        vb.name = Name
+        vb.cpus = 1
+        vb.memory = 1024
+      end
+
+      # Network settings
+      #   SSH connection
+      cfg.vm.network "forwarded_port", guest: 22, host: 60010, auto_correct: true, id: "ssh"
+
+      # Move files
+      cfg.vm.provision "shell", path: "downloader.online.sh"
+
+    end
+
+end

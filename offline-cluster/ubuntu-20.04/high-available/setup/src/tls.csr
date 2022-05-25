@@ -1,0 +1,21 @@
+[req]
+distinguished_name = private_registry_cert_req
+x509_extensions = v3_req
+prompt = no
+
+[private_registry_cert_req]
+C = KR
+ST = SEOUL
+L = SEOUL
+O = test_organazation
+OU = test_org_unit
+CN = IPADDR
+
+[v3_req]
+keyUsage = keyEncipherment, dataEncipherment
+extendedKeyUsage = serverAuth
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.0 = m1-k8s
+IP.0 = IPADDR

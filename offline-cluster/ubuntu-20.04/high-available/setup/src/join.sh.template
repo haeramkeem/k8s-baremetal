@@ -1,0 +1,18 @@
+#!/bin/bash
+#%DUAL_LB%# Install HAProxy
+#%DUAL_LB%dpkg -i ./haproxy/*.deb
+#%DUAL_LB%mv ./haproxy.cfg /etc/haproxy/haproxy.cfg
+#%DUAL_LB%systemctl restart haproxy
+
+#%DUAL_LB%# Install Keepalived
+#%DUAL_LB%dpkg -i ./keepalived/*.deb
+#%DUAL_LB%mv ./keepalived.conf /etc/keepalived/keepalived.conf
+#%DUAL_LB%systemctl restart keepalived
+
+# Join cluster as backup sorry master
+{JOIN_STR}
+
+#%KUBE_CFG%# Post configuration
+#%KUBE_CFG%mkdir -p $HOME/.kube
+#%KUBE_CFG%cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+#%KUBE_CFG%chown $(id -u):$(id -g) $HOME/.kube/config
