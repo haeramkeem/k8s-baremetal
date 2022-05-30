@@ -317,7 +317,7 @@ postgresql:
   ## @param postgresql.readinessProbe.successThreshold Success threshold for readinessProbe
   ##
   readinessProbe:
-    enabled: true
+    enabled: false ## MODIFIED from 'true' to 'false' ##
     initialDelaySeconds: 5
     periodSeconds: 10
     timeoutSeconds: 5
