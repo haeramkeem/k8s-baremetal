@@ -1,3 +1,6 @@
 [submodule "clustermaker"]
 	path = clustermaker
 	url = https://github.com/haeramkeem/clustermaker.git
+[submodule "yammy"]
+	path = yammy
+	url = https://github.com/haeramkeem/yammy.git
