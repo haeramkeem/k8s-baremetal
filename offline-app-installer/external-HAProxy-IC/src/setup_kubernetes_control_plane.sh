@@ -4,7 +4,7 @@ NODE_IP=$(ip -4 addr show enp0s3 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
 ROOT=$(dirname $0)
 
 # Load images
-for img in $(ls images/*.tar); do docker load < $img; done
+for img in $(ls images/*.tar); do docker load < $img; rm -rf $img; done
 
 # Uninstall existing calico
 kubectl delete -f $ROOT/manifests/calico-no-op.yaml

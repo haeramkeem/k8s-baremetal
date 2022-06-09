@@ -1,8 +1,8 @@
 [Unit]
 Description="HAProxy Kubernetes Ingress Controller"
 Documentation=https://www.haproxy.com/
-Requires=network-online.target
-After=network-online.target
+StartLimitIntervalSec=180
+StartLimitBurst=9
 
 [Service]
 Type=simple
@@ -14,7 +14,8 @@ ExecStart=/usr/local/bin/haproxy-ingress-controller --external --configmap=defau
 ExecReload=/bin/kill --signal HUP $MAINPID
 KillMode=process
 KillSignal=SIGTERM
-Restart=on-failure
+Restart=always
+RestartSec=20
 LimitNOFILE=65536
 
 [Install]

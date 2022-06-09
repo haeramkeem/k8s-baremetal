@@ -40,7 +40,7 @@ source <(curl -sL https://raw.githubusercontent.com/haeramkeem/sh-it/main/func/s
 dl_deb_pkg $WORKDIR/debs/helm <<< "helm"
 
 # Download nfs-common
-dl_deb_pkg $WORKDIR/debs/nfs-common <<< "nfs-common"
+dl_deb_pkg $WORKDIR/debs/nfs-common <<< "nfs-common libevent-2.1-7"
 
 # Add nfs-subdir-external-provisioner chart repository
 bash <(curl -sL https://raw.githubusercontent.com/haeramkeem/sh-it/main/install/helm/repo/nfs-subdir-external-provisioner.sh)
