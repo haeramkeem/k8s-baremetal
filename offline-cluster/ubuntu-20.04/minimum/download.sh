@@ -93,7 +93,7 @@ curl -Lo $MAN_PATH/cni.yaml $CNI_YAML
 cat $MAN_PATH/cni.yaml | save_img_from_yaml $IMG_PATH
 
 # Copy over /vagrant/installer.offline.sh
-cutl -L \
+curl -L \
     https://raw.githubusercontent.com/haeramkeem/clustermaker/main/offline-cluster/ubuntu-20.04/minimum/src/install.sh \
     -o $DST_PATH/install.sh
 
