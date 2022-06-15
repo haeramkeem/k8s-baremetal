@@ -3,7 +3,7 @@
 set -e
 
 # ENVs
-SRC="/vagrant/src"
+SRC="https://raw.githubusercontent.com/haeramkeem/clustermaker/main/offline-app-installer/external-HAProxy-IC/src"
 ROOT="/home/vagrant"
 X86_ARCH="x86_64"
 AMD_ARCH="amd64"
@@ -14,11 +14,6 @@ OS_LOWERCASE="linux"
 bash <(curl -sL https://raw.githubusercontent.com/haeramkeem/sh-it/main/install/docker.sh)
 source <(curl -sL https://raw.githubusercontent.com/haeramkeem/sh-it/main/func/dl_deb_pkg.sh)
 source <(curl -sL https://raw.githubusercontent.com/haeramkeem/sh-it/main/func/save_img_from_yaml.sh)
-
-# Remove CR
-for file in $(ls ${SRC}/*); do
-    sed -i 's/\r//g' $file
-done
 
 #############
 #  INGRESS  #
@@ -47,8 +42,8 @@ tar -xzvf ${TAR_NAME} -C ${ING_DIR}/bin
 rm -rf $TAR_NAME
 
 # Copy the HAProxy Kubernetes Ingress Controller service
-cp -v $SRC/haproxy-ingress.service ${ING_DIR}/etc/
-cp -v $SRC/haproxy.cfg ${ING_DIR}/etc/
+curl -L $SRC/haproxy-ingress.service -o ${ING_DIR}/etc/haproxy-ingress.service
+curl -L $SRC/haproxy.cfg -o ${ING_DIR}/etc/haproxy.cfg
 
 # Install Bird
 add-apt-repository -y ppa:cz.nic-labs/bird
@@ -56,10 +51,11 @@ apt update
 dl_deb_pkg "${ING_DIR}/deb/bird" <<< "bird"
 
 # Copy over bird.conf
-cp -v $SRC/bird.conf ${ING_DIR}/etc/bird.conf
+curl -L $SRC/bird.conf -o ${ING_DIR}/etc/bird.conf
 
 # Copy over setup_ingress_controller.sh
-cp -v $SRC/setup_ingress_controller.sh ${ING_DIR}/
+curl -L $SRC/setup_ingress_controller.sh ${ING_DIR}/install.sh
+chmod 700 ${ING_DIR}/install.sh
 
 ##################
 #  CONTROLPLANE  #
@@ -99,16 +95,17 @@ cp -v $FNAME/images/* $CTL_DIR/images/.
 rm -rf $FNAME*
 
 # Copy over calico BGP installation
-cp -v $SRC/calico-bgp-installation.yaml $CTL_DIR/manifests/calico-bgp-installation.yaml
+curl -L $SRC/calico-bgp-installation.yaml -o $CTL_DIR/manifests/calico-bgp-installation.yaml
 
 # Copy over calico configuration
-cp -v $SRC/calicoctl.cfg $CTL_DIR/etc/calicoctl.cfg
+curl -L $SRC/calicoctl.cfg -o $CTL_DIR/etc/calicoctl.cfg
 
 # Copy over Calico YAML for BGP peering
-cp -v $SRC/calico-bgp-configuration.yaml $CTL_DIR/manifests/calico-bgp-configuration.yaml
+curl -L $SRC/calico-bgp-configuration.yaml -o $CTL_DIR/manifests/calico-bgp-configuration.yaml
 
 # Copy over setup_kubernetes_controlplane.sh
-cp -v $SRC/setup_kubernetes_control_plane.sh ${CTL_DIR}/
+curl -L $SRC/setup_kubernetes_control_plane.sh -o ${CTL_DIR}/install.sh
+chmod 700 ${CTL_DIR}/install.sh
 
 ############
 #  WORKER  #
@@ -122,4 +119,5 @@ mkdir -pv $WKR_DIR
 cp -rv $CTL_DIR/images $WKR_DIR/images
 
 # Copy over setup_kubernetes_worker.sh
-cp -v $SRC/setup_kubernetes_worker.sh ${WKR_DIR}/
+curl -L $SRC/setup_kubernetes_worker.sh -o ${WKR_DIR}/install.sh
+chmod 700 ${WKR_DIR}/install.sh
