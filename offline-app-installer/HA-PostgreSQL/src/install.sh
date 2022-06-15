@@ -7,9 +7,11 @@ for img in $(ls $WORKDIR/images/*.tar); do
     rm -rf $img
 done
 
+# Controlplane synopsis
+# - ./install.sh controlplane ${NAMESPACE} ${RELEASE_NAME}
 if [[ $1 == "controlplane" ]]; then
-    RELEASE=${2:-"pg"}
-    NAMESPACE=${3:-"default"}
+    NAMESPACE=${2:-"default"}
+    RELEASE=${3:-"pg"}
 
     helm install $RELEASE $WORKDIR/charts/postgresql-ha.tgz \
         -n $NAMESPACE \

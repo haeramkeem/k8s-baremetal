@@ -14,8 +14,8 @@
 
 # ENVs
 STUFF="postgresql-ha"
-INSTALLDIR=${1:-"/home/vagrant"}
-WORKDIR="$INSTALLDIR/$STUFF"
+USR=${1:-"vagrant"}
+WORKDIR="/home/$USR/$STUFF"
 VERSION="9.1.4"
 
 # Working directories
@@ -37,7 +37,6 @@ if ! `helm version &> /dev/null`; then
 fi
 
 # Import functions
-#source <(curl -sL https://raw.githubusercontent.com/haeramkeem/sh-it/main/func/dl_deb_pkg.sh)
 source <(curl -sL https://raw.githubusercontent.com/haeramkeem/sh-it/main/func/save_img_from_yaml.sh)
 
 # FILL OUT THE 'AS YOU WANT's
@@ -47,15 +46,18 @@ helm pull bitnami/postgresql-ha --version $VERSION
 mv -v postgresql-ha-$VERSION.tgz $WORKDIR/charts/postgresql-ha.tgz
 
 # download values
-VALUE_URL="https://raw.githubusercontent.com/haeramkeem/yammy/main/helm-values/bitnami/postgresql-ha/harbor-ext-ha-db.values.yaml"
-curl -L $VALUE_URL -o $WORKDIR/values/postgresql-ha.values.yaml
+curl -L \
+    https://raw.githubusercontent.com/haeramkeem/yammy/main/helm-values/bitnami/postgresql-ha/harbor-ext-ha-db.values.yaml \
+    -o $WORKDIR/values/postgresql-ha.values.yaml
 
 # download images
 helm template $WORKDIR/charts/postgresql-ha.tgz \
-    --values $WORKDIR/values/postgresql-ha.values.yaml \
+    -f $WORKDIR/values/postgresql-ha.values.yaml \
     | save_img_from_yaml $WORKDIR/images
 
 # COPY 'install.sh' CONTENT
-cp /vagrant/install.sh $WORKDIR/install.sh
+curl -L \
+    https://raw.githubusercontent.com/haeramkeem/clustermaker/main/offline-app-installer/HA-PostgreSQL/src/install.sh \
+    -o $WORKDIR/install.sh
 sed -i 's/\r//g' $WORKDIR/install.sh
 chmod 700 $WORKDIR/install.sh
