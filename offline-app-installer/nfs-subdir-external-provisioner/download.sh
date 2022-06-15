@@ -55,6 +55,6 @@ helm template $cmd \
 
 # Download installation script
 INSTALL_SH_URL="https://raw.githubusercontent.com/haeramkeem/clustermaker/main/offline-app-installer/nfs-subdir-external-provisioner/src/install.sh"
-curl -L $INSTALL_SH_DIR -o $WORKDIR/install.sh
+curl -L $INSTALL_SH_URL -o $WORKDIR/install.sh
 sed -i 's/\r//g' $WORKDIR/install.sh
 chmod 700 $WORKDIR/install.sh

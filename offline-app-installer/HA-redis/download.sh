@@ -57,6 +57,6 @@ helm template $WORKDIR/charts/redis.tgz \
 
 # COPY 'install.sh' CONTENT
 INSTALL_SH_URL="https://raw.githubusercontent.com/haeramkeem/clustermaker/main/offline-app-installer/HA-redis/src/install.sh"
-curl -L $INSTALLDIR -o $WORKDIR/install.sh
+curl -L $INSTALL_SH_URL -o $WORKDIR/install.sh
 sed -i 's/\r//g' $WORKDIR/install.sh
 chmod 700 $WORKDIR/install.sh

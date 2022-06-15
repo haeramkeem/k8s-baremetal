@@ -56,8 +56,7 @@ helm template $WORKDIR/charts/harbor.tgz \
     | save_img_from_yaml $WORKDIR/images
 
 # COPY 'install.sh' CONTENT
-curl -L \
-    https://raw.githubusercontent.com/haeramkeem/clustermaker/main/offline-app-installer/HA-harbor/src/install.sh \
-    -o $WORKDIR/install.sh
+INSTALL_SH_URL="https://raw.githubusercontent.com/haeramkeem/clustermaker/main/offline-app-installer/HA-harbor/src/install.sh"
+curl -L $INSTALL_SH_URL -o $WORKDIR/install.sh
 sed -i 's/\r//g' $WORKDIR/install.sh
 chmod 700 $WORKDIR/install.sh
