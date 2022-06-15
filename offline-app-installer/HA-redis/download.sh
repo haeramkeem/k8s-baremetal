@@ -14,8 +14,8 @@
 
 # ENVs
 STUFF="redis"
-INSTALLDIR=${1:-"/home/vagrant"}
-WORKDIR="$INSTALLDIR/$STUFF"
+USR=${1:-"vagrant"}
+WORKDIR="/home/$USR/$STUFF"
 VERSION="16.12.0"
 
 # Working directories
@@ -37,7 +37,6 @@ if ! `helm version &> /dev/null`; then
 fi
 
 # Import functions
-#source <(curl -sL https://raw.githubusercontent.com/haeramkeem/sh-it/main/func/dl_deb_pkg.sh)
 source <(curl -sL https://raw.githubusercontent.com/haeramkeem/sh-it/main/func/save_img_from_yaml.sh)
 
 # FILL OUT THE 'AS YOU WANT's
@@ -47,8 +46,9 @@ helm pull bitnami/redis --version $VERSION
 mv -v redis-$VERSION.tgz $WORKDIR/charts/redis.tgz
 
 # download values
-VALUES_URL="https://raw.githubusercontent.com/haeramkeem/yammy/main/helm-values/bitnami/redis/harbor-ext-ha-redis.values.yaml"
-curl -L $VALUES_URL -o $WORKDIR/values/redis.values.yaml
+curl -L \
+    https://raw.githubusercontent.com/haeramkeem/yammy/main/helm-values/bitnami/redis/harbor-ext-ha-redis.values.yaml \
+    -o $WORKDIR/values/redis.values.yaml
 
 # download images
 helm template $WORKDIR/charts/redis.tgz \
@@ -56,6 +56,8 @@ helm template $WORKDIR/charts/redis.tgz \
     | save_img_from_yaml $WORKDIR/images
 
 # COPY 'install.sh' CONTENT
-cp /vagrant/install.sh $WORKDIR/install.sh
+curl -L \
+    https://raw.githubusercontent.com/haeramkeem/clustermaker/main/offline-app-installer/HA-redis/src/install.sh \
+    -o $WORKDIR/install.sh
 sed -i 's/\r//g' $WORKDIR/install.sh
-chmod 711 $WORKDIR/install.sh
+chmod 700 $WORKDIR/install.sh
