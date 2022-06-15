@@ -14,7 +14,7 @@
 
 # ENVs
 STUFF="harbor"
-INSTALLDIR=${1:-"/home/vagrant"}
+INSTALLDIR=${1:-"$PWD"}
 WORKDIR="$INSTALLDIR/$STUFF"
 VERSION="1.9.1"
 
@@ -37,7 +37,6 @@ if ! `helm version &> /dev/null`; then
 fi
 
 # Import functions
-#source <(curl -sL https://raw.githubusercontent.com/haeramkeem/sh-it/main/func/dl_deb_pkg.sh)
 source <(curl -sL https://raw.githubusercontent.com/haeramkeem/sh-it/main/func/save_img_from_yaml.sh)
 
 # FILL OUT THE 'AS YOU WANT's
@@ -47,8 +46,9 @@ helm pull harbor/harbor --version $VERSION
 mv -v harbor-$VERSION.tgz $WORKDIR/charts/harbor.tgz
 
 # download values
-VALUE_URL="https://raw.githubusercontent.com/haeramkeem/yammy/main/helm-values/harbor/ingress-notls-ha.values.yaml"
-curl -L $VALUE_URL -o $WORKDIR/values/harbor.values.yaml
+curl -L \
+    https://raw.githubusercontent.com/haeramkeem/yammy/main/helm-values/harbor/ingress-notls-ha.values.yaml \
+    -o $WORKDIR/values/harbor.values.yaml
 
 # download images
 helm template $WORKDIR/charts/harbor.tgz \
@@ -56,6 +56,8 @@ helm template $WORKDIR/charts/harbor.tgz \
     | save_img_from_yaml $WORKDIR/images
 
 # COPY 'install.sh' CONTENT
-cp /vagrant/install.sh $WORKDIR/install.sh
+curl -L \
+    https://raw.githubusercontent.com/haeramkeem/clustermaker/main/offline-app-installer/HA-harbor/src/install.sh \
+    -o $WORKDIR/install.sh
 sed -i 's/\r//g' $WORKDIR/install.sh
-chmod 711 $WORKDIR/install.sh
+chmod 700 $WORKDIR/install.sh

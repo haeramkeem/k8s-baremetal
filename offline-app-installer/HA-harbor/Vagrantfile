@@ -9,7 +9,7 @@ Vagrant.configure("2") do |group|
       instance.vm.box = "ubuntu/focal64"
       instance.vm.hostname = Name
       instance.vm.network "forwarded_port", guest: 22, host: 60010, auto_correct: true, id: "ssh"
-      instance.vm.provision "shell", path: "download.sh"
+      instance.vm.provision "shell", path: "download.sh", args: "/home/vagrant"
       instance.vm.provider :virtualbox do |vb|
         vb.name = Name
         vb.cpus = 1
