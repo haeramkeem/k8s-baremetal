@@ -3,8 +3,7 @@
 set -e
 
 # ENVs
-USR=${1:-"vagrant"}
-WORKDIR="/home/$USR"
+WORKDIR=${1:-"$PWD"}
 X86_ARCH="x86_64"
 AMD_ARCH="amd64"
 OS_NAME="Linux"
@@ -12,7 +11,9 @@ OS_LOWERCASE="linux"
 SRC="https://raw.githubusercontent.com/haeramkeem/clustermaker/main/offline-app-installer/external-HAProxy-IC/src"
 
 # Basic setup
-bash <(curl -sL https://raw.githubusercontent.com/haeramkeem/sh-it/main/install/docker.sh)
+if ! `docker version &> /dev/null`; then
+    bash <(curl -sL https://raw.githubusercontent.com/haeramkeem/sh-it/main/install/docker.sh)
+fi
 source <(curl -sL https://raw.githubusercontent.com/haeramkeem/sh-it/main/func/dl_deb_pkg.sh)
 source <(curl -sL https://raw.githubusercontent.com/haeramkeem/sh-it/main/func/save_img_from_yaml.sh)
 
@@ -28,9 +29,9 @@ mkdir -pv $ING_DIR
 mkdir -pv $ING_DIR/deb
 mkdir -pv $ING_DIR/bin
 mkdir -pv $ING_DIR/etc
-apt-get update
 
 # Download HAProxy
+apt-get update
 add-apt-repository -y ppa:vbernat/haproxy-${HAPROXY_VER}
 apt-get update
 dl_deb_pkg "${ING_DIR}/deb/haproxy" <<< "haproxy"
@@ -55,7 +56,7 @@ dl_deb_pkg "${ING_DIR}/deb/bird" <<< "bird"
 curl -L $SRC/bird.conf -o ${ING_DIR}/etc/bird.conf
 
 # Copy over setup_ingress_controller.sh
-curl -L $SRC/setup_ingress_controller.sh ${ING_DIR}/install.sh
+curl -L $SRC/setup_ingress_controller.sh -o ${ING_DIR}/install.sh
 chmod 700 ${ING_DIR}/install.sh
 
 ##################

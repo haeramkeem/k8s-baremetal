@@ -14,8 +14,8 @@
 
 # ENVs
 STUFF="postgresql-ha"
-USR=${1:-"vagrant"}
-WORKDIR="/home/$USR/$STUFF"
+INSTALLDIR=${1:-"$PWD"}
+WORKDIR="$INSTALLDIR/$STUFF"
 VERSION="9.1.4"
 
 # Working directories
@@ -56,8 +56,7 @@ helm template $WORKDIR/charts/postgresql-ha.tgz \
     | save_img_from_yaml $WORKDIR/images
 
 # COPY 'install.sh' CONTENT
-curl -L \
-    https://raw.githubusercontent.com/haeramkeem/clustermaker/main/offline-app-installer/HA-PostgreSQL/src/install.sh \
-    -o $WORKDIR/install.sh
+INSTALL_SH_URL="https://raw.githubusercontent.com/haeramkeem/clustermaker/main/offline-app-installer/HA-PostgreSQL/src/install.sh"
+curl -L $INSTALL_SH_URL -o $WORKDIR/install.sh
 sed -i 's/\r//g' $WORKDIR/install.sh
 chmod 700 $WORKDIR/install.sh

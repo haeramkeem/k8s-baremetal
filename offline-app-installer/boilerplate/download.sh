@@ -14,7 +14,7 @@
 
 # ENVs
 STUFF=""
-INSTALLDIR=${1:-"/home/vagrant"}
+INSTALLDIR=${1:-"$PWD"}
 WORKDIR="$INSTALLDIR/$STUFF"
 VERSION=""
 
@@ -43,6 +43,7 @@ source <(curl -sL https://raw.githubusercontent.com/haeramkeem/sh-it/main/func/s
 # FILL OUT THE 'AS YOU WANT's
 
 # COPY 'install.sh' CONTENT
-cp /vagrant/install.sh $WORKDIR/install.sh
+INSTALL_SH_URL=""
+curl -L $INSTALL_SH_URL -o $WORKDIR/install.sh
 sed -i 's/\r//g' $WORKDIR/install.sh
-chmod 711 $WORKDIR/install.sh
+chmod 700 $WORKDIR/install.sh
