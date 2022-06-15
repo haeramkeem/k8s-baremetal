@@ -12,7 +12,8 @@ fi
 DOCKER_CE="5:20.10.14~3-0~ubuntu-focal"
 DOCKER_CLI="5:20.10.14~3-0~ubuntu-focal"
 CONTAINERD="1.5.11-1"
-KUBE_VER="1.23.5-00"
+KUBE_VER="1.23.7"
+KUBE_DEB_VER="$KUBE_VER-00"
 CNI_YAML="https://projectcalico.docs.tigera.io/manifests/calico.yaml"
 
 # Load functions
@@ -73,12 +74,12 @@ docker pull nginx
 docker save nginx > $IMG_PATH/nginx.tar
 
 # Download & install kubelet, kubeadm, kubectl
-dl_deb_pkg "$DEB_PATH/k8s" <<< "kubelet=$KUBE_VER kubectl=$KUBE_VER kubeadm=$KUBE_VER"
+dl_deb_pkg "$DEB_PATH/k8s" <<< "kubelet=$KUBE_DEB_VER kubectl=$KUBE_DEB_VER kubeadm=$KUBE_DEB_VER"
 dpkg -i $DEB_PATH/k8s/*.deb
 
 # download kubernetes images
 #   required image list
-KUBE_IMG_LIST=$(kubeadm config images list)
+KUBE_IMG_LIST=$(kubeadm config images list --kubernetes-version ${KUBE_VER})
 
 #   pull & download images
 for KUBE_IMG in $KUBE_IMG_LIST; do
