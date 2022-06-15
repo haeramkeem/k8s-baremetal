@@ -19,13 +19,26 @@ CNI_YAML="https://projectcalico.docs.tigera.io/manifests/calico.yaml"
 source <(curl -sL https://raw.githubusercontent.com/haeramkeem/sh-it/main/func/dl_deb_pkg.sh)
 source <(curl -sL https://raw.githubusercontent.com/haeramkeem/sh-it/main/func/save_img_from_yaml.sh)
 
-# Install docker
-if ! `docker version &> /dev/null`; then
-    bash <(curl -sL https://raw.githubusercontent.com/haeramkeem/sh-it/main/install/docker.sh)
-fi
+# Install docker repo
+sudo apt-get update
+sudo apt-get install -y ca-certificates curl gnupg lsb-release
 
-# Install kubelet, kubectl, kubeadm
-bash <(curl -sL https://raw.githubusercontent.com/haeramkeem/sh-it/main/install/kube.sh) $KUBE_VER
+# Install docker apt repo
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | \
+sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+echo "deb [arch=$(dpkg --print-architecture) \
+signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] \
+https://download.docker.com/linux/ubuntu \
+$(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update
+
+# Install kubelet, kubectl, kubeadm repo
+sudo curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg \
+https://packages.cloud.google.com/apt/doc/apt-key.gpg
+echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] \
+https://apt.kubernetes.io/ kubernetes-xenial main" \
+| sudo tee /etc/apt/sources.list.d/kubernetes.list
+sudo apt-get update
 
 # destination path variables
 USR=${1:-"vagrant"}
@@ -40,8 +53,9 @@ mkdir -pv $MAN_PATH
 mkdir -pv $DEB_PATH
 mkdir -pv $IMG_PATH
 
-# download docker ce
+# download & install docker ce
 dl_deb_pkg "$DEB_PATH/docker" <<< "docker-ce=$DOCKER_CE docker-ce-cli=$DOCKER_CLI containerd.io=$CONTAINERD" 
+dpkg -i $DEB_PATH/docker/*.deb
 
 # Some environment like `WSL` systemd isn't used to initiate and manage system
 #   In this case, use `servive` command instead
@@ -58,8 +72,9 @@ fi
 docker pull nginx
 docker save nginx > $IMG_PATH/nginx.tar
 
-# Download kubelet, kubeadm, kubectl
+# Download & install kubelet, kubeadm, kubectl
 dl_deb_pkg "$DEB_PATH/k8s" <<< "kubelet=$KUBE_VER kubectl=$KUBE_VER kubeadm=$KUBE_VER"
+dpkg -i $DEB_PATH/k8s/*.deb
 
 # download kubernetes images
 #   required image list
@@ -78,8 +93,9 @@ curl -Lo $MAN_PATH/cni.yaml $CNI_YAML
 cat $MAN_PATH/cni.yaml | save_img_from_yaml $IMG_PATH
 
 # Copy over /vagrant/installer.offline.sh
-INS_URL="https://raw.githubusercontent.com/haeramkeem/clustermaker/main/offline-cluster/ubuntu-20.04/minimum/src/install.sh"
-curl -Lo $DST_PATH/install.sh $INS_URL
+cutl -L \
+    https://raw.githubusercontent.com/haeramkeem/clustermaker/main/offline-cluster/ubuntu-20.04/minimum/src/install.sh \
+    -o $DST_PATH/install.sh
 
 # delete CR
 chmod 700 $DST_PATH/install.sh
