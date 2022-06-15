@@ -22,6 +22,8 @@ And as a VM provider, `VirtualBox` must be installed on your host machine
         - docker-registry/ : K8s cluster w/ Docker Registry setup
 - offline-app-installer/ : Offline K8s application installer packs
     - external-HAProxy-IC/ : External HAProxy IC migrator
+    - HA-PostgreSQL/ : Highly-available PostgreSQL downloader & installer
+    - HA-redis/ : Highly-available Redis downloader & installer
     - HA-harbor/ : Highly-available Harbor image registry downloader & installer
     - loki-stack/ : Loki stack (PLG) downloader & installer
     - nfs-subdir-external-provisioner/ : NFS external PV provisioner downloader & installer
