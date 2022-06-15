@@ -1,17 +1,5 @@
 #!/bin/bash
 
-########################
-#  CHECK ENV VALIDITY  #
-########################
-
-# Check superuser
-if [[ $(whoami) != "root" ]]
-then
-    echo "Please run this script in superuser."
-    echo "recommend: 'sudo su'"
-    exit 1
-fi
-
 ###################
 #  ENV VARIABLES  #
 ###################
@@ -39,29 +27,30 @@ source <(curl -sL https://raw.githubusercontent.com/haeramkeem/sh-it/main/func/s
 ################################
 
 # Install prerequisites
-apt-get update
-apt-get install -y ca-certificates curl gnupg lsb-release apt-transport-https
+sudo apt-get update
+sudo apt-get install -y ca-certificates curl gnupg lsb-release apt-transport-https
 
 # Install docker apt repo
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
 echo "deb [arch=$(dpkg --print-architecture)\
     signed-by=/usr/share/keyrings/docker-archive-keyring.gpg]\
     https://download.docker.com/linux/ubuntu\
-    $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+    $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
 # Install kubernetes apt repo
-curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
-echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | tee /etc/apt/sources.list.d/kubernetes.list
+sudo curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
+echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
 
 # Update apt
-apt-get update
+sudo apt-get update
 
 ######################
 #  DESTINATION PATH  #
 ######################
 
+USR=${1:-"vagrant"}
 # destination path variables
-DST_PATH=/home/vagrant/setup
+DST_PATH=/home/$USR/setup
 MAN_PATH=$DST_PATH/manifests
 DEB_PATH=$DST_PATH/debs
 IMG_PATH=$DST_PATH/images
@@ -77,32 +66,31 @@ mkdir -pv $IMG_PATH
 ##################################
 
 # download docker ce
-dl_deb_pkg "$DEB_PATH/docker" <<< "docker-ce=$DOCKER_CE docker-ce-cli=$DOCKER_CLI containerd.io=$CONTAINERD" 
+sudo dl_deb_pkg "$DEB_PATH/docker" <<< "docker-ce=$DOCKER_CE docker-ce-cli=$DOCKER_CLI containerd.io=$CONTAINERD" 
 
 # install docker ce
-dpkg -i $DEB_PATH/docker/*.deb
+sudo dpkg -i $DEB_PATH/docker/*.deb
 # Some environment like `WSL` systemd isn't used to initiate and manage system
 #   In this case, use `servive` command instead
 #   Ref: https://dev.to/bowmanjd/install-docker-on-windows-wsl-without-docker-desktop-34m9
 #   Check init method: https://unix.stackexchange.com/a/121665
-if `pidof systemd`
-then
-    systemctl enable --now docker.service
+if `pidof systemd &> /dev/null`; then
+    sudo systemctl enable --now docker.service
 else
-    service docker start
-    chkconfig docker on
+    sudo service docker start
+    sudo chkconfig docker on
 fi
 
 # Download test docker image
-docker pull nginx
-docker save nginx > $IMG_PATH/nginx.tar
+sudo docker pull nginx
+sudo docker save nginx > $IMG_PATH/nginx.tar
 
 #########################
 #  DOWNLOAD KUBERNETES  #
 #########################
 
 # download kubelet, kubeadm, kubectl
-dl_deb_pkg "$DEB_PATH/k8s" <<< "kubelet=$KUBELET kubectl=$KUBECTL kubeadm=$KUBEADM"
+sudo dl_deb_pkg "$DEB_PATH/k8s" <<< "kubelet=$KUBELET kubectl=$KUBECTL kubeadm=$KUBEADM"
 
 # download kubernetes images
 #   required image list
@@ -118,8 +106,8 @@ k8s.gcr.io/coredns/coredns:$COREDNS"
 #   pull & download images
 for KUBE_IMG in $KUBE_IMG_LIST
 do
-    docker pull $KUBE_IMG
-    docker save $KUBE_IMG > $IMG_PATH/${KUBE_IMG//\//.}.tar
+    sudo docker pull $KUBE_IMG
+    sudo docker save $KUBE_IMG > $IMG_PATH/$(awk -F/ '{print $NF}' <<< ${KUBE_IMG}).tar
 done
 
 ########################
@@ -130,14 +118,16 @@ done
 curl -Lo $MAN_PATH/cni.yaml $CNI_YAML
 
 # download cni-related docker image
-cat $MAN_PATH/cni.yaml | save_img_from_yaml $IMG_PATH
+cat $MAN_PATH/cni.yaml | sudo save_img_from_yaml $IMG_PATH
 
 ##############################
 #  COPY INSTALLATION SCRIPT  #
 ##############################
 
 # Copy over /vagrant/installer.offline.sh
-cp -irv /vagrant/installer.offline.sh $DST_PATH/.
+INS_URL="https://raw.githubusercontent.com/haeramkeem/clustermaker/main/offline-cluster/ubuntu-20.04/minimum/installer.offline.sh"
+curl -Lo $DST_PATH/install.sh $INS_URL
 
 # delete CR
-sed -i 's/\r//g' $DST_PATH/installer.offline.sh
+sudo chmod 700 $DST_PATH/install.sh
+sed -i 's/\r//g' $DST_PATH/install.sh
