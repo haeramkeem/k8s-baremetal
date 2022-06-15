@@ -22,7 +22,7 @@ MASTER_IP=${3:-"192.168.1.101"}
 WORKER_BASE=${4:-"192.168.1.20"}
 TOKEN="123456.1234567890123456"
 CIDR="172.16.0.0/16"
-KUBE_VER="v1.23.5"
+KUBE_VER="${KUBE_VER}"
 
 # Kubernetes requires the disabling of the partition swapping
 #   swapoff -a to disable swapping

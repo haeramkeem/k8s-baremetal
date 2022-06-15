@@ -3,12 +3,13 @@
 set -e
 
 # ENVs
-SRC="https://raw.githubusercontent.com/haeramkeem/clustermaker/main/offline-app-installer/external-HAProxy-IC/src"
-ROOT="/home/vagrant"
+USR=${1:-"vagrant"}
+WORKDIR="/home/$USR"
 X86_ARCH="x86_64"
 AMD_ARCH="amd64"
 OS_NAME="Linux"
 OS_LOWERCASE="linux"
+SRC="https://raw.githubusercontent.com/haeramkeem/clustermaker/main/offline-app-installer/external-HAProxy-IC/src"
 
 # Basic setup
 bash <(curl -sL https://raw.githubusercontent.com/haeramkeem/sh-it/main/install/docker.sh)
@@ -19,7 +20,7 @@ source <(curl -sL https://raw.githubusercontent.com/haeramkeem/sh-it/main/func/s
 #  INGRESS  #
 #############
 
-ING_DIR="$ROOT/ingress"
+ING_DIR="$WORKDIR/ingress"
 HAPROXY_VER="2.5"
 HAPROXY_IC_VER="1.7.10"
 
@@ -61,7 +62,7 @@ chmod 700 ${ING_DIR}/install.sh
 #  CONTROLPLANE  #
 ##################
 
-CTL_DIR="$ROOT/controlplane"
+CTL_DIR="$WORKDIR/controlplane"
 CAL_VER="3.23.1"
 
 mkdir -pv $CTL_DIR
@@ -111,7 +112,7 @@ chmod 700 ${CTL_DIR}/install.sh
 #  WORKER  #
 ############
 
-WKR_DIR="$ROOT/worker"
+WKR_DIR="$WORKDIR/worker"
 
 mkdir -pv $WKR_DIR
 

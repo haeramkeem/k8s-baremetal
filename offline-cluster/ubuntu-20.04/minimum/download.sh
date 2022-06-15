@@ -101,3 +101,4 @@ curl -L \
 # delete CR
 chmod 700 $DST_PATH/install.sh
 sed -i 's/\r//g' $DST_PATH/install.sh
+sed -i "s/\${KUBE_VER}/$KUBE_VER/g" $DST_PATH/install.sh
