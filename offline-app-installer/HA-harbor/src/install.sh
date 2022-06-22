@@ -9,9 +9,10 @@ for img in $(ls $WORKDIR/images/*.tar); do
 done
 
 # CONTROLPLANE scripts
+# Synopsis: ./install.sh controlplane ${NAMESPACE} ${RELEASE}
 if [[ $1 == "controlplane" ]]; then
-    RELEASE=${2:-"harbor"}
-    NAMESPACE=${3:-"default"}
+    NAMESPACE=${2:-"default"}
+    RELEASE=${3:-"harbor"}
 
     helm install $RELEASE $WORKDIR/charts/harbor.tgz \
         -n $NAMESPACE \
