@@ -99,6 +99,11 @@ TOKEN="123456.1234567890123456"
 CIDR="172.16.0.0/16"
 # CONTROLPLANE scripts
 if [[ $1 == "controlplane" ]]; then
+    if ! `sudo ls /etc/resolv.conf &> /dev/null`; then
+        echo "Initiating with kubeadm requires DNS server configuration: /etc/resolv.conf"
+        exit 1
+    fi
+
     # init kubernetes cluster
     sudo kubeadm init \
         --token $TOKEN \
