@@ -13,10 +13,10 @@
 # 5. Run 'install.sh' file to install
 
 # ENVs
-STUFF="cluster"
+STUFF="k8s"
 INSTALLDIR=${1:-"$PWD"}
 WORKDIR="$INSTALLDIR/$STUFF"
-VERSION="${2:+"-$2"}"
+VERSION=${2:+"-$2"}
 
 # Working directories
 mkdir -pv $WORKDIR
@@ -31,7 +31,7 @@ source <(curl -sL https://raw.githubusercontent.com/haeramkeem/sh-it/main/func/s
 bash <(curl -sL https://raw.githubusercontent.com/haeramkeem/sh-it/main/install/rhel8/kube.sh)
 
 # Download containerd and kube stuff
-repotrack containerd kubelet kubectl kubeadm --disableexcludes kubernetes
+repotrack containerd kubelet$VERSION kubectl$VERSION kubeadm$VERSION --disableexcludes kubernetes
 mv *.rpm $WORKDIR/rpms
 
 # Download images
@@ -48,7 +48,7 @@ curl -Lo $WORKDIR/manifests/cni.yaml $CNI_YAML
 cat $WORKDIR/manifests/cni.yaml | save_img_from_yaml $WORKDIR/images
 
 # COPY 'install.sh' CONTENT
-INSTALL_SH_URL="https://raw.githubusercontent.com/haeramkeem/clustermaker/main/offline-cluster/rocky8/src/install.sh"
+INSTALL_SH_URL="https://raw.githubusercontent.com/haeramkeem/clustermaker/main/offline-cluster/rocky-8.6/src/install.sh"
 curl -L $INSTALL_SH_URL -o $WORKDIR/install.sh
 sed -i 's/\r//g' $WORKDIR/install.sh
 chmod 700 $WORKDIR/install.sh

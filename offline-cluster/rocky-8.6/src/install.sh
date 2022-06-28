@@ -5,18 +5,18 @@ WORKDIR=$(dirname $0)
 
 # Setup local DNS
 # - Master node config
-MASTER_HOST_PREFIX=${2:-"k8s-m"}
-MASTER_IP_PREFIX=${3:-"192.168.1.10"}
-MASTER_CNT=${4:-"1"}
+MASTER_HOST_PREFIX="k8s-m"
+MASTER_IP_PREFIX="192.168.1.10"
+MASTER_CNT="1"
 for i in $(seq 1 $MASTER_CNT); do
-    sudo tee -a /etc/hosts <<< "$MASTER_HOST_PREFIX$i $MASTER_IP_PREFIX$i"
+    sudo tee -a /etc/hosts <<< "$MASTER_IP_PREFIX$i $MASTER_HOST_PREFIX$i"
 done
 # - Worker node config
-WORKER_HOST_PREFIX=${5:-"k8s-w"}
-WORKER_IP_PREFIX=${6:-"192.168.1.20"}
-WORKER_CNT=${7:-"3"}
+WORKER_HOST_PREFIX="k8s-w"
+WORKER_IP_PREFIX="192.168.1.20"
+WORKER_CNT="3"
 for i in $(seq 1 $WORKER_CNT); do
-    sudo tee -a /etc/hosts <<< "$WORKER_HOST_PREFIX$i $WORKER_IP_PREFIX$i"
+    sudo tee -a /etc/hosts <<< "$WORKER_IP_PREFIX$i $WORKER_HOST_PREFIX$i"
 done
 
 # Install all(containerd, kubelet, kubectl, and kubeadm)
@@ -26,8 +26,12 @@ mkdir -pv $WORKDIR/rpms/installed_pkgs
 for rpm_file in $(ls $WORKDIR/rpms/*.rpm); do
     rpm -q $(rpm -qp $rpm_file --nosignature) &> /dev/null \
     && mv $rpm_file $WORKDIR/rpms/installed_pkgs/
-    
 done
+
+# - Move el8_6 packages to the installed_pkgs dir
+#   to prevent installing duplicated el8_6 pkgs
+mv $WORKDIR/rpms/*el8_6* $WORKDIR/rpms/installed_pkgs/
+
 # - Install
 sudo rpm -Uvh --force $WORKDIR/rpms/*.rpm
 
@@ -44,7 +48,7 @@ sudo modprobe overlay
 sudo modprobe br_netfilter
 # - Configurations for containerd
 sudo mkdir -p /etc/containerd
-sudo containerd config default | sudo tee /etc/containerd/config.toml
+containerd config default | sudo tee /etc/containerd/config.toml
 sudo sed -i 's/SystemdCgroup = false/SystemdCgroup = true/g' \
         /etc/containerd/config.toml
 sudo sed -i 's$sandbox_image = "k8s.gcr.io/pause:3.6"$sandbox_image = "k8s.gcr.io/pause:3.7"$g' \
@@ -55,9 +59,16 @@ sudo systemctl enable --now containerd
 sudo systemctl restart containerd
 # Load images
 for img in $(ls $WORKDIR/images/*.tar); do
-    ctr -n=k8s.io images import $img
+    sudo ctr -n=k8s.io images import $img
     rm -rf $img
 done
+
+# -------------------------
+# CRICTL
+# -------------------------
+# - Configurations for CRICTL
+sudo crictl config runtime-endpoint unix:///var/run/containerd/containerd.sock
+sudo crictl config image-endpoint unix:///var/run/containerd/containerd.sock
 
 # -------------------------
 # Kubernetes
@@ -69,15 +80,8 @@ sudo sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
 # - Kubernetes requires the disabling of the partition swapping
 sudo swapoff -a
 sudo sed -i.bak -r 's/(.+\s+swap\s+.+)/#\1/' /etc/fstab
-# - Configurations for CRICTL
-cat <<EOF | sudo tee -a /etc/crictl.yaml
-runtime-endpoint: unix:///var/run/containerd/containerd.sock
-image-endpoint: unix:///var/run/containerd/containerd.sock
-timeout: 2
-pull-image-on-create: false
-EOF
 # - Configure iptables for kubernetes-CRI
-cat <<EOF | sudo tee /etc/sysctl.d/99-kubernetes-cri.conf
+cat <<EOF | sudo tee -a /etc/sysctl.d/99-kubernetes-cri.conf
 net.bridge.bridge-nf-call-iptables  = 1
 net.ipv4.ip_forward                 = 1
 net.bridge.bridge-nf-call-ip6tables = 1
