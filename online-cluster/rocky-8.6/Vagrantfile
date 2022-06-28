@@ -1,0 +1,37 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |group|
+
+    Master = "rocky-k8s-m1"
+    MasterIP = "192.168.1.101"
+
+    group.vm.define Master do |instance|
+      instance.vm.box = "generic/rocky8"
+      instance.vm.hostname = Master
+      instance.vm.network "private_network", ip: MasterIP
+      instance.vm.provision "shell", path: "install.sh", args: ["master", MasterIP]
+      instance.vm.provider :virtualbox do |vb|
+        vb.name = Master
+        vb.cpus = 2
+        vb.memory = 2048
+      end
+    end
+   
+    N = 3
+ 
+    (1..N).each do |i|
+      worker = "rocky-k8s-w#{i}"
+      group.vm.define worker do |instance|
+        instance.vm.box = "generic/rocky8"
+        instance.vm.hostname = worker
+        instance.vm.network "private_network", ip: "192.168.1.20#{i}"
+        instance.vm.provision "shell", path: "install.sh", args: ["worker", MasterIP]
+        instance.vm.provider :virtualbox do |vb|
+          vb.name = worker
+          vb.cpus = 1
+          vb.memory = 1024
+        end
+      end
+    end
+end
