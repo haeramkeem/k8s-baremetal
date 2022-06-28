@@ -25,7 +25,8 @@ mkdir -pv $WORKDIR/images
 mkdir -pv $WORKDIR/manifests
 
 # Load functions
-source <(curl -sL https://raw.githubusercontent.com/haeramkeem/sh-it/main/func/save_img_from_yaml.sh)
+source <(curl -sL https://raw.githubusercontent.com/haeramkeem/sh-it/main/func/get_img_list_from_yaml.sh)
+source <(curl -sL https://raw.githubusercontent.com/haeramkeem/sh-it/main/func/dl_oci_imgs.sh)
 
 # Install docker and kube stuff
 bash <(curl -sL https://raw.githubusercontent.com/haeramkeem/sh-it/main/install/rhel8/kube.sh)
@@ -35,17 +36,17 @@ repotrack containerd kubelet$VERSION kubectl$VERSION kubeadm$VERSION --disableex
 mv *.rpm $WORKDIR/rpms
 
 # Download images
-for img in $(kubeadm config images list); do
-docker pull $img
-docker save $img > $WORKDIR/images/$(awk -F/ '{print $NF}' <<< $img).tar
-done
+kubeadm config images list \
+    | dl_oci_imgs $WORKDIR/images
 
 # download cni yaml
 CNI_YAML="https://projectcalico.docs.tigera.io/manifests/calico.yaml"
 curl -Lo $WORKDIR/manifests/cni.yaml $CNI_YAML
 
 # download cni-related docker image
-cat $WORKDIR/manifests/cni.yaml | save_img_from_yaml $WORKDIR/images
+cat $WORKDIR/manifests/cni.yaml \
+    | get_img_list_from_yaml \
+    | dl_oci_imgs $WORKDIR/images
 
 # COPY 'install.sh' CONTENT
 INSTALL_SH_URL="https://raw.githubusercontent.com/haeramkeem/clustermaker/main/offline-cluster/rocky-8.6/src/install.sh"
