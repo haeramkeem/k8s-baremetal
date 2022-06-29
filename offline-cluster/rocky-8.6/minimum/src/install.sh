@@ -104,6 +104,10 @@ if [[ $1 == "controlplane" ]]; then
         exit 1
     fi
 
+    # Allow firewall port
+    sudo firewall-cmd --permanent --add-port={179,6443,2379,2380,10250,10257,10259}/tcp
+    sudo firewall-cmd --reload
+
     # init kubernetes cluster
     sudo kubeadm init \
         --token $TOKEN \
@@ -128,8 +132,17 @@ fi
 
 # WORKER scripts
 if [[ $1 == "worker" ]]; then
+    if ! `sudo ls /etc/resolv.conf &> /dev/null`; then
+        echo "Joining cluster with kubeadm requires DNS server configuration: /etc/resolv.conf"
+        exit 1
+    fi
+
+    # Allow firewall port
+    sudo firewall-cmd --permanent --add-port={179,10250,30000-32767}/tcp
+    sudo firewall-cmd --reload
+
     # join kubernetes cluster
-    kubeadm join \
+    sudo kubeadm join \
         --token $TOKEN \
         --discovery-token-unsafe-skip-ca-verification $MASTER_IP_PREFIX'1:6443'
 fi
