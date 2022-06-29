@@ -49,7 +49,7 @@ cat $WORKDIR/manifests/cni.yaml \
     | dl_oci_imgs $WORKDIR/images
 
 # COPY 'install.sh' CONTENT
-INSTALL_SH_URL="https://raw.githubusercontent.com/haeramkeem/clustermaker/main/offline-cluster/rocky-8.6/src/install.sh"
+INSTALL_SH_URL="https://raw.githubusercontent.com/haeramkeem/clustermaker/main/offline-cluster/rocky-8.6/minimum/src/install.sh"
 curl -L $INSTALL_SH_URL -o $WORKDIR/install.sh
 sed -i 's/\r//g' $WORKDIR/install.sh
 chmod 700 $WORKDIR/install.sh
