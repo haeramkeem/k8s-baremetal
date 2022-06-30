@@ -24,8 +24,6 @@ HAPROXY_VER="$HAPROXY_VER_MAJOR.1"
 # Working directories
 mkdir -pv $WORKDIR
 mkdir -pv $WORKDIR/rpms
-mkdir -pv $WORKDIR/images
-mkdir -pv $WORKDIR/manifests
 mkdir -pv $WORKDIR/bin
 mkdir -pv $WORKDIR/etc
 
@@ -34,7 +32,7 @@ source <(curl -sL https://raw.githubusercontent.com/haeramkeem/sh-it/main/func/g
 source <(curl -sL https://raw.githubusercontent.com/haeramkeem/sh-it/main/func/dl_oci_imgs.sh)
 
 # Download minimum installation files
-bash <(curl -sL https://raw.githubusercontent.com/haeramkeem/clustermaker/main/offline-cluster/rocky-8.6/minimum/download.sh)
+bash <(curl -sL https://raw.githubusercontent.com/haeramkeem/clustermaker/main/offline-cluster/rocky-8.6/minimum/download.sh) "$WORKDIR"
 
 # Build HAProxy binary
 FNAME="haproxy-$HAPROXY_VER"

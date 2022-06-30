@@ -1,20 +1,53 @@
 #!/bin/bash
 
 set -e
-WORKDIR=$(dirname $0)
 
-# Setup local DNS
-# - Master node config
+# -------------------------
+# Defaults
+# -------------------------
+# Working dir
+WORKDIR=$(dirname $0)
+# IP address & hostname
+# - Self
+NIC_NAME="enp0s3"
+NODE_HOST=$(hostname)
+NODE_IP=$(ip -4 addr show $NIC_NAME | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
+# - Masters
 MASTER_HOST_PREFIX="k8s-m"
 MASTER_IP_PREFIX="192.168.1.10"
 MASTER_CNT="1"
-for i in $(seq 1 $MASTER_CNT); do
-    sudo tee -a /etc/hosts <<< "$MASTER_IP_PREFIX$i $MASTER_HOST_PREFIX$i"
-done
-# - Worker node config
+# - Workers
 WORKER_HOST_PREFIX="k8s-w"
 WORKER_IP_PREFIX="192.168.1.20"
 WORKER_CNT="3"
+# K8s env
+TOKEN="123456.1234567890123456"
+CIDR="172.16.0.0/16"
+# Installation mode
+MODE="no-init"
+
+# -------------------------
+# Options
+# -------------------------
+while getopts 'm:M:W:' opt; do
+    case "$opt" in
+        m) MODE="$OPTARG"; echo "Installation mode: $MODE" ;;
+        M) MASTER_CNT="$OPTARG"; echo "MASTER_CNT is configured to: $MASTER_CNT" ;;
+        W) WORKER_CNT="$OPTARG"; echo "WORKER_CNT is configured to: $MASTER_CNT" ;;
+        *) echo "Unknown option '$opt'"; exit 1 ;;
+    esac
+done
+
+# -------------------------
+# Setup local DNS
+# -------------------------
+# Self config
+sudo tee -a /etc/hosts <<< "$NODE_IP $NODE_HOST"
+# Master node config
+for i in $(seq 1 $MASTER_CNT); do
+    sudo tee -a /etc/hosts <<< "$MASTER_IP_PREFIX$i $MASTER_HOST_PREFIX$i"
+done
+# Worker node config
 for i in $(seq 1 $WORKER_CNT); do
     sudo tee -a /etc/hosts <<< "$WORKER_IP_PREFIX$i $WORKER_HOST_PREFIX$i"
 done
@@ -95,15 +128,20 @@ sudo systemctl restart kubelet
 # -------------------------
 # Init cluster
 # -------------------------
-TOKEN="123456.1234567890123456"
-CIDR="172.16.0.0/16"
-# CONTROLPLANE scripts
-if [[ $1 == "controlplane" ]]; then
-    if ! `sudo ls /etc/resolv.conf &> /dev/null`; then
-        echo "Initiating with kubeadm requires DNS server configuration: /etc/resolv.conf"
-        exit 1
-    fi
+# End script for 'no-init'
+if [[ $MODE == "no-init" ]]; then
+    echo "Init flag '-m' not set. skipping initiation..."
+    exit 0
+fi
 
+# Check '/etc/resolv.conf'
+if ! `sudo ls /etc/resolv.conf &> /dev/null`; then
+    echo "Initiating with kubeadm requires DNS server configuration: /etc/resolv.conf"
+    exit 1
+fi
+
+# CONTROLPLANE scripts
+if [[ $MODE == "controlplane" ]]; then
     # Allow firewall port
     sudo firewall-cmd --permanent --add-port={179,6443,2379,2380,10250,10257,10259}/tcp
     sudo firewall-cmd --reload
@@ -131,11 +169,7 @@ if [[ $1 == "controlplane" ]]; then
 fi
 
 # WORKER scripts
-if [[ $1 == "worker" ]]; then
-    if ! `sudo ls /etc/resolv.conf &> /dev/null`; then
-        echo "Joining cluster with kubeadm requires DNS server configuration: /etc/resolv.conf"
-        exit 1
-    fi
+if [[ $MODE == "worker" ]]; then
 
     # Allow firewall port
     sudo firewall-cmd --permanent --add-port={179,10250,30000-32767}/tcp
