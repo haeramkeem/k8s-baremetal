@@ -30,8 +30,8 @@ CIDR="172.16.0.0/16"
 while getopts 'm:M:W:' opt; do
     case "$opt" in
         m) echo "Initiation mode: ${MODE:=$OPTARG}" ;;
-        M) echo "MASTER_CNT is re-configured to: ${MASTER_CNT:=$OPTARG}" ;;
-        W) echo "WORKER_CNT is re-configured to: ${MASTER_CNT:=$OPTARG}" ;;
+        M) unset MASTER_CNT; echo "MASTER_CNT is re-configured to: ${MASTER_CNT:=$OPTARG}" ;;
+        W) unset WORKER_CNT; echo "WORKER_CNT is re-configured to: ${WORKER_CNT:=$OPTARG}" ;;
         *) echo "Unknown option '$opt'"; exit 1 ;;
     esac
 done
