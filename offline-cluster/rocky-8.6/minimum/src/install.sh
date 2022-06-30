@@ -23,17 +23,15 @@ WORKER_CNT="3"
 # K8s env
 TOKEN="123456.1234567890123456"
 CIDR="172.16.0.0/16"
-# Installation mode
-MODE="no-init"
 
 # -------------------------
 # Options
 # -------------------------
 while getopts 'm:M:W:' opt; do
     case "$opt" in
-        m) MODE="$OPTARG"; echo "Installation mode: $MODE" ;;
-        M) MASTER_CNT="$OPTARG"; echo "MASTER_CNT is configured to: $MASTER_CNT" ;;
-        W) WORKER_CNT="$OPTARG"; echo "WORKER_CNT is configured to: $MASTER_CNT" ;;
+        m) echo "Initiation mode: ${MODE:=$OPTARG}" ;;
+        M) echo "MASTER_CNT is re-configured to: ${MASTER_CNT:=$OPTARG}" ;;
+        W) echo "WORKER_CNT is re-configured to: ${MASTER_CNT:=$OPTARG}" ;;
         *) echo "Unknown option '$opt'"; exit 1 ;;
     esac
 done
@@ -128,55 +126,52 @@ sudo systemctl restart kubelet
 # -------------------------
 # Init cluster
 # -------------------------
-# End script for 'no-init'
-if [[ $MODE == "no-init" ]]; then
-    echo "Init flag '-m' not set. skipping initiation..."
-    exit 0
-fi
-
 # Check '/etc/resolv.conf'
 if ! `sudo ls /etc/resolv.conf &> /dev/null`; then
     echo "Initiating with kubeadm requires DNS server configuration: /etc/resolv.conf"
     exit 1
 fi
 
-# CONTROLPLANE scripts
-if [[ $MODE == "controlplane" ]]; then
-    # Allow firewall port
-    sudo firewall-cmd --permanent --add-port={179,6443,2379,2380,10250,10257,10259}/tcp
-    sudo firewall-cmd --reload
+case "$MODE" in
+    # CONTROLPLANE scripts
+    controlplane)
+        # Allow firewall port
+        sudo firewall-cmd --permanent --add-port={179,6443,2379,2380,10250,10257,10259}/tcp
+        sudo firewall-cmd --reload
 
-    # init kubernetes cluster
-    sudo kubeadm init \
-        --token $TOKEN \
-        --token-ttl 0 \
-        --pod-network-cidr=$CIDR \
-        --apiserver-advertise-address=$MASTER_IP_PREFIX'1'
+        # init kubernetes cluster
+        sudo kubeadm init \
+            --token $TOKEN \
+            --token-ttl 0 \
+            --pod-network-cidr=$CIDR \
+            --apiserver-advertise-address=$MASTER_IP_PREFIX'1'
 
-    # copy configuration
-    sudo mkdir -pv /root/.kube
-    sudo cp -irv /etc/kubernetes/admin.conf /root/.kube/config
-    sudo chown root:root /root/.kube/config
+        # copy configuration
+        sudo mkdir -pv /root/.kube
+        sudo cp -irv /etc/kubernetes/admin.conf /root/.kube/config
+        sudo chown root:root /root/.kube/config
 
-    if [[ $(id -u) -ne 0 ]]; then
-        mkdir -pv /home/$USER/.kube
-        sudo cp -irv /etc/kubernetes/admin.conf /home/$USER/.kube/config
-        sudo chown $USER:$USER /home/$USER/.kube/config
-    fi
+        if [[ $(id -u) -ne 0 ]]; then
+            mkdir -pv /home/$USER/.kube
+            sudo cp -irv /etc/kubernetes/admin.conf /home/$USER/.kube/config
+            sudo chown $USER:$USER /home/$USER/.kube/config
+        fi
 
-    # config for kubernetes's network
-    kubectl apply -f ./manifests/cni.yaml
-fi
+        # config for kubernetes's network
+        kubectl apply -f ./manifests/cni.yaml
+        ;;
 
-# WORKER scripts
-if [[ $MODE == "worker" ]]; then
+    # WORKER scripts
+    worker)
+        # Allow firewall port
+        sudo firewall-cmd --permanent --add-port={179,10250,30000-32767}/tcp
+        sudo firewall-cmd --reload
 
-    # Allow firewall port
-    sudo firewall-cmd --permanent --add-port={179,10250,30000-32767}/tcp
-    sudo firewall-cmd --reload
+        # join kubernetes cluster
+        sudo kubeadm join \
+            --token $TOKEN \
+            --discovery-token-unsafe-skip-ca-verification $MASTER_IP_PREFIX'1:6443'
+        ;;
 
-    # join kubernetes cluster
-    sudo kubeadm join \
-        --token $TOKEN \
-        --discovery-token-unsafe-skip-ca-verification $MASTER_IP_PREFIX'1:6443'
-fi
+    *) echo "Init flag '-m' not set. skipping initiation..."
+esac

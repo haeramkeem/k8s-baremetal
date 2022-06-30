@@ -41,14 +41,11 @@ done
 # -------------------------
 # Install minimum cluster components
 # -------------------------
-$WORKDIR/k8s/install.sh -m no-init -M $MASTER_CNT -W $WORKER_CNT
+$WORKDIR/k8s/install.sh -M $MASTER_CNT -W $WORKER_CNT
 
 # -------------------------
 # Init cluster
 # -------------------------
-# End script when mode is not provided
-[ -z "$MODE" ] && echo "Initiation mode flag '-m' not set'" && exit 0
-
 # '/etc/resolv.conf' must be present
 if ! `sudo ls /etc/resolv.conf &> /dev/null`; then
     echo >&2 "Initiating with kubeadm requires DNS server configuration: /etc/resolv.conf"
@@ -57,21 +54,26 @@ fi
 
 # Helper functions
 function install_haproxy {
+    # Add user for HAProxy
     sudo groupadd --gid 980 haproxy
     sudo useradd --gid 980 --uid 980 -r haproxy
 
+    # Setup HAProxy config
     sudo mkdir -p /etc/haproxy
     sudo cp $WORKDIR/etc/haproxy.cfg.template /etc/haproxy/haproxy.cfg
     # sudo touch /etc/haproxy/domain2backend.map
     sudo chown -R haproxy:haproxy /etc/haproxy/
 
+    # Setup HAProxy stats page
     sudo mkdir -p /var/lib/haproxy
     sudo touch /var/lib/haproxy/stats
     sudo chown -R haproxy:haproxy /var/lib/haproxy
 
+    # Install & register systemd service
     sudo cp $WORKDIR/bin/haproxy /usr/local/sbin/
     sudo cp $WORKDIR/etc/haproxy.service /lib/systemd/system/
 
+    # Configure
     sudo sed -i "s/\${FE_PORT}/${APISERVER_DEST_PORT}/g" /etc/haproxy/haproxy.cfg
     sudo sed -i "s|\${HTTP_HEALTHCHECK_URLPATH}|/healthz|g" /etc/haproxy/haproxy.cfg
 
@@ -80,6 +82,7 @@ function install_haproxy {
         <<< "    server $MASTER_HOST_PREFIX$i $MASTER_IP_PREFIX$i:6443 check"
     done
 
+    # Start systemd service
     sudo systemctl enable --now haproxy
     sudo systemctl restart haproxy
 }
@@ -116,6 +119,7 @@ function install_keepalived {
     sudo sed -i "s/\${NIC_NAME}/${NIC_NAME}/g" /etc/keepalived/keepalived.conf
     sudo sed -i "s/\${VIP}/${APISERVER_VIP}/g" /etc/keepalived/keepalived.conf
 
+    # Start systemd service
     sudo systemctl enable --now keepalived
     sudo systemctl restart keepalived
 }
