@@ -30,9 +30,10 @@ CIDR="172.16.0.0/16"
 # -------------------------
 # Options
 # -------------------------
-while getopts 'm:' opt; do
+while getopts 'm:c:' opt; do
     case "$opt" in
-        m) MODE="$OPTARG" ;;
+        m) echo "Initiation mode set to ${MODE:=$OPTARG}" ;;
+        c) echo "Certificate key set to ${CERT_KEY:=$OPTARG}" ;;
         *) echo "Unknown option '$opt'"; exit 1 ;;
     esac
 done
@@ -133,79 +134,97 @@ function copy_kube_config {
     fi
 }
 
-# For real(active) master server ...
-if [[ $MODE == "real" ]]; then
-    # Allow firewall port
-    sudo firewall-cmd --permanent --add-port={179,6443,2379,2380,10250,10257,10259}/tcp
-    sudo firewall-cmd --reload
+case "$MODE" in
+    # For real(active) master server ...
+    real)
+        # Allow firewall port
+        sudo firewall-cmd --permanent --add-port={179,6443,2379,2380,10250,10257,10259}/tcp
+        sudo firewall-cmd --reload
 
-    # Install HAProxy & Keepalived
-    install_haproxy
-    install_keepalived "real"
+        # Install HAProxy & Keepalived
+        install_haproxy
+        install_keepalived "real"
 
-    # init kubernetes cluster
-    sudo kubeadm init \
-        --token $TOKEN \
-        --token-ttl 0 \
-        --pod-network-cidr $CIDR \
-        --apiserver-advertise-address $APISERVER_VIP \
-        --upload-certs \
-        --control-plane-endpoint $APISERVER_VIP:$APISERVER_DEST_PORT
+        # init kubernetes cluster
+        sudo kubeadm init \
+            --token $TOKEN \
+            --token-ttl 0 \
+            --pod-network-cidr $CIDR \
+            --apiserver-advertise-address $APISERVER_VIP \
+            --upload-certs \
+            --control-plane-endpoint $APISERVER_VIP:$APISERVER_DEST_PORT
 
-    # Copy kubectl config
-    copy_kube_config
+        # Copy kubectl config
+        copy_kube_config
 
-    # Install CNI plugin
-    kubectl create -f $WORKDIR/k8s/manifests/cni.yaml
-fi
+        # Install CNI plugin
+        kubectl create -f $WORKDIR/k8s/manifests/cni.yaml
+        ;;
 
-# For sorry(standby) master server ...
-if [[ $MODE == "sorry" ]]; then
-    # Allow firewall port
-    sudo firewall-cmd --permanent --add-port={179,6443,2379,2380,10250,10257,10259}/tcp
-    sudo firewall-cmd --reload
+    # For sorry(standby) master server ...
+    sorry)
+        # Check certificate key
+        [ -z $CERT_KEY ] \
+            && echo "Flag '-c' not provided. aborting." \
+            && echo "Certificate key is required to join as master node" \
+            && exit 1
 
-    # Install HAProxy & Keepalived
-    install_haproxy
-    install_keepalived "sorry"
+        # Allow firewall port
+        sudo firewall-cmd --permanent --add-port={179,6443,2379,2380,10250,10257,10259}/tcp
+        sudo firewall-cmd --reload
 
-    # init kubernetes cluster
-    sudo kubeadm join \
-        --token $TOKEN \
-        --control-plane \
-        --discovery-token-unsafe-skip-ca-verification \
-        $APISERVER_VIP:$APISERVER_DEST_PORT
+        # Install HAProxy & Keepalived
+        install_haproxy
+        install_keepalived "sorry"
 
-    # Copy kubectl config
-    copy_kube_config
-fi
+        # init kubernetes cluster
+        sudo kubeadm join \
+            --token $TOKEN \
+            --certificate-key $CERT_KEY \
+            --control-plane \
+            --discovery-token-unsafe-skip-ca-verification \
+            $APISERVER_VIP:$APISERVER_DEST_PORT
 
-# For normal master server ...
-if [[ $MODE == "controlplane" ]]; then
-    # Allow firewall port
-    sudo firewall-cmd --permanent --add-port={179,6443,2379,2380,10250,10257,10259}/tcp
-    sudo firewall-cmd --reload
+        # Copy kubectl config
+        copy_kube_config
+        ;;
 
-    # init kubernetes cluster
-    sudo kubeadm join \
-        --token $TOKEN \
-        --control-plane \
-        --discovery-token-unsafe-skip-ca-verification \
-        $APISERVER_VIP:$APISERVER_DEST_PORT
+    # For normal master server ...
+    controlplane)
+        # Check certificate key
+        [ -z $CERT_KEY ] \
+            && echo "Flag '-c' not provided. aborting." \
+            && echo "Certificate key is required to join as master node" \
+            && exit 1
 
-    # Copy kubectl config
-    copy_kube_config
-fi
+        # Allow firewall port
+        sudo firewall-cmd --permanent --add-port={179,6443,2379,2380,10250,10257,10259}/tcp
+        sudo firewall-cmd --reload
 
-# For worker ...
-if [[ $MODE == "worker" ]]; then
-    # Allow firewall port
-    sudo firewall-cmd --permanent --add-port={179,10250,30000-32767}/tcp
-    sudo firewall-cmd --reload
+        # init kubernetes cluster
+        sudo kubeadm join \
+            --token $TOKEN \
+            --certificate-key $CERT_KEY \
+            --control-plane \
+            --discovery-token-unsafe-skip-ca-verification \
+            $APISERVER_VIP:$APISERVER_DEST_PORT
 
-    # Join kubernetes cluster
-    sudo kubeadm join \
-        --token $TOKEN \
-        --discovery-token-unsafe-skip-ca-verification \
-        $APISERVER_VIP:$APISERVER_DEST_PORT
-fi
+        # Copy kubectl config
+        copy_kube_config
+        ;;
+
+    # For worker ...
+    worker)
+        # Allow firewall port
+        sudo firewall-cmd --permanent --add-port={179,10250,30000-32767}/tcp
+        sudo firewall-cmd --reload
+
+        # Join kubernetes cluster
+        sudo kubeadm join \
+            --token $TOKEN \
+            --discovery-token-unsafe-skip-ca-verification \
+            $APISERVER_VIP:$APISERVER_DEST_PORT
+        ;;
+
+    *) echo "Init flag '-m' not set. skipping initiation..."
+esac
