@@ -86,6 +86,10 @@ function install_haproxy {
 function install_keepalived {
     local TARGET=$1
 
+    # Allow VRRP packet for keepalived
+    sudo firewall-cmd --permanent --add-rich-rule='rule protocol value="vrrp" accept'
+    sudo firewall-cmd --reload
+
     # Scan installed pkgs
     mkdir -pv $WORKDIR/rpms/keepalived/installed
 
