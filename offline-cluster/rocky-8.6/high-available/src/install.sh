@@ -46,7 +46,7 @@ $WORKDIR/k8s/install.sh -m no-init -M $MASTER_CNT -W $WORKER_CNT
 # Init cluster
 # -------------------------
 # End script when mode is not provided
-[ -z "$MODE"] && echo "Initiation mode flag '-m' not set'"; exit 0
+[ -z "$MODE" ] && echo "Initiation mode flag '-m' not set'" && exit 0
 
 # '/etc/resolv.conf' must be present
 if ! `sudo ls /etc/resolv.conf &> /dev/null`; then
@@ -86,8 +86,18 @@ function install_haproxy {
 function install_keepalived {
     local TARGET=$1
 
-    # Install Keepalived
-    scan $WORKDIR/rpms/keepalived
+    # Scan installed pkgs
+    mkdir -pv $WORKDIR/rpms/keepalived/installed
+
+    for rpm_file in $(ls $WORKDIR/rpms/keepalived/*.rpm); do
+        rpm -q $(rpm -qp $rpm_file --nosignature) &> /dev/null \
+        && mv $rpm_file $WORKDIR/rpms/keepalived/installed/
+    done
+    # - Move el8_6 packages to the installed_pkgs dir
+    #   to prevent installing duplicated el8_6 pkgs
+    mv $WORKDIR/rpms/keepalived/*el8_6*.rpm $WORKDIR/rpms/keepalived/installed/
+
+    # Install
     sudo rpm -Uvh --force $WORKDIR/rpms/keepalived/*.rpm
 
     # Generate apiserver checker
@@ -96,8 +106,8 @@ function install_keepalived {
     sudo sed -i "s/\${APISERVER_DEST_PORT}/${APISERVER_DEST_PORT}/g" /etc/keepalived/check_apiserver.sh
 
     # Copy over keepalived conf
-    sudo cp $WORKDIR/etc/keepalived.$MODE.conf /etc/keepalived/keepalived.conf
-    sudo sed -i "s/\${CHECK_SCRIPT_NAME}/check_apiserver/g" /etc/keepalived/keepalived.conf
+    sudo cp $WORKDIR/etc/keepalived.$TARGET.conf /etc/keepalived/keepalived.conf
+    sudo sed -i "s/\${CHECK_SCRIPT_FNAME}/check_apiserver/g" /etc/keepalived/keepalived.conf
     sudo sed -i "s/\${NIC_NAME}/${NIC_NAME}/g" /etc/keepalived/keepalived.conf
     sudo sed -i "s/\${VIP}/${APISERVER_VIP}/g" /etc/keepalived/keepalived.conf
 
@@ -142,7 +152,7 @@ if [[ $MODE == "real" ]]; then
     copy_kube_config
 
     # Install CNI plugin
-    kubectl create -f $WORKDIR/manifests/cni.yaml
+    kubectl create -f $WORKDIR/k8s/manifests/cni.yaml
 fi
 
 # For sorry(standby) master server ...
