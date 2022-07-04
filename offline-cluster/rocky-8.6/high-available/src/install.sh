@@ -23,6 +23,10 @@ WORKER_CNT="3"
 # Keepalived env
 APISERVER_VIP="192.168.1.10"
 APISERVER_DEST_PORT="26443"
+# HAProxy env
+HAPROXY_STAT_PORT="8404"
+HAPROXY_STAT_ADMIN_USERNAME="haproxy"
+HAPROXY_STAT_ADMIN_PASSWORD="haproxy12345"
 # K8s env
 TOKEN="123456.1234567890123456"
 CIDR="172.16.0.0/16"
@@ -55,7 +59,7 @@ fi
 # Helper functions
 function install_haproxy {
     # Allow frontent port
-    sudo firewall-cmd --permanent --add-port=$APISERVER_DEST_PORT/tcp
+    sudo firewall-cmd --permanent --add-port={$APISERVER_DEST_PORT, $HAPROXY_STAT_PORT}/tcp
     sudo firewall-cmd --reload
 
     # Add user for HAProxy
@@ -65,13 +69,14 @@ function install_haproxy {
     # Setup HAProxy config
     sudo mkdir -p /etc/haproxy
     sudo cp $WORKDIR/etc/haproxy.cfg.template /etc/haproxy/haproxy.cfg
-    # sudo touch /etc/haproxy/domain2backend.map
     sudo chown -R haproxy:haproxy /etc/haproxy/
 
     # Setup HAProxy stats page
     sudo mkdir -p /var/lib/haproxy
     sudo touch /var/lib/haproxy/stats
     sudo chown -R haproxy:haproxy /var/lib/haproxy
+    sudo sed -i "s/\${STAT_ADMIN_USERNAME}/${HAPROXY_STAT_ADMIN_USERNAME}/g" /etc/haproxy/haproxy.cfg
+    sudo sed -i "s/\${STAT_ADMIN_PASSWORD}/${HAPROXY_STAT_ADMIN_PASSWORD}/g" /etc/haproxy/haproxy.cfg
 
     # Install & register systemd service
     sudo cp $WORKDIR/bin/haproxy /usr/local/sbin/
