@@ -59,7 +59,8 @@ fi
 # Helper functions
 function install_haproxy {
     # Allow frontent port
-    sudo firewall-cmd --permanent --add-port={$APISERVER_DEST_PORT, $HAPROXY_STAT_PORT}/tcp
+    sudo firewall-cmd --permanent --add-port=$APISERVER_DEST_PORT/tcp
+    sudo firewall-cmd --permanent --add-port=$HAPROXY_STAT_PORT/tcp
     sudo firewall-cmd --reload
 
     # Add user for HAProxy
