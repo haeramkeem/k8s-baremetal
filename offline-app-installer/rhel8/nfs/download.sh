@@ -13,22 +13,26 @@
 # 5. Run 'install.sh' file to install
 
 # ENVs
-STUFF="wireshark"
+STUFF="nfs"
 INSTALLDIR=${1:-"$PWD"}
 WORKDIR="$INSTALLDIR/$STUFF"
-VERSION="2.6.2" # YUM/DNF only provides this version
+VERSION="2.3.3"
 
 # Working directories
 mkdir -pv $WORKDIR
 mkdir -pv $WORKDIR/rpms
 
+# Install dependencies
+
+# Import functions
+
 # FILL OUT THE 'AS YOU WANT's
-cd $WORKDIR/rpms
-repotrack wireshark-$VERSION wireshark-$VERSION
-cd $WORKDIR
+mkdir -pv $WORKDIR/rpms/nfs-utils
+repotrack nfs-utils-$VERSION
+mv *.rpm $WORKDIR/rpms/nfs-utils
 
 # COPY 'install.sh' CONTENT
-INSTALL_SH_URL="https://raw.githubusercontent.com/haeramkeem/clustermaker/main/offline-app-installer/rhel8/wireshark/src/install.sh"
+INSTALL_SH_URL="https://raw.githubusercontent.com/haeramkeem/clustermaker/main/offline-app-installer/rhel8/nfs/src/install.sh"
 curl -L $INSTALL_SH_URL -o $WORKDIR/install.sh
 sed -i 's/\r//g' $WORKDIR/install.sh
 chmod 700 $WORKDIR/install.sh
