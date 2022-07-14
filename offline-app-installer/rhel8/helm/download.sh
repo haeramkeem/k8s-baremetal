@@ -13,32 +13,24 @@
 # 5. Run 'install.sh' file to install
 
 # ENVs
-STUFF=""
+STUFF="helm"
 INSTALLDIR=${1:-"$PWD"}
 WORKDIR="$INSTALLDIR/$STUFF"
-VERSION=""
+VERSION="v3.9.1"
 
 # Working directories
 mkdir -pv $WORKDIR
-mkdir -pv $WORKDIR/rpms
 mkdir -pv $WORKDIR/bins
-mkdir -pv $WORKDIR/images
-mkdir -pv $WORKDIR/charts
-mkdir -pv $WORKDIR/values
-mkdir -pv $WORKDIR/manifests
-mkdir -pv $WORKDIR/etcs
 
 # Install dependencies
-if ! `docker version &> /dev/null`; then
-    bash <(curl -sL https://raw.githubusercontent.com/haeramkeem/sh-it/main/install/docker/rhel8.sh)
-fi
 
 # Import functions
 
 # FILL OUT THE 'AS YOU WANT's
+bash <(curl -sL https://raw.githubusercontent.com/haeramkeem/sh-it/main/install/helm/rhel8.sh) -v $VERSION -i $WORKDIR/bins
 
 # COPY 'install.sh' CONTENT
 INSTALL_SH_PREFIX="https://raw.githubusercontent.com/haeramkeem/clustermaker/main/offline-app-installer/rhel8"
-curl -L $INSTALL_SH_PREFIX/${FIX_ME}/src/install.sh -o $WORKDIR/install.sh
+curl -L $INSTALL_SH_PREFIX/helm/src/install.sh -o $WORKDIR/install.sh
 sed -i 's/\r//g' $WORKDIR/install.sh
 chmod 700 $WORKDIR/install.sh
