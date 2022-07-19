@@ -20,7 +20,6 @@ VERSION="7.17.3"
 
 # Working directories
 mkdir -pv $WORKDIR
-mkdir -pv $WORKDIR/bins
 mkdir -pv $WORKDIR/values
 mkdir -pv $WORKDIR/charts
 mkdir -pv $WORKDIR/images
