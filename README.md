@@ -1,8 +1,8 @@
-# ClusterMaker
+# Kubernetes Infrastructure as Code
 
 This repository contains:
 
-1. K8s cluster VM setup automation tools
+1. K8s cluster VM setup automation tools (IaC)
 2. Demos for the Kubernetes and Docker
 
 ## Prerequisites
@@ -12,6 +12,7 @@ This repository contains:
 
 ## Index
 
+- demo/ : K8s demonstration scripts
 - online-cluster/ : Online K8s cluster makers
     - centos-7/ : CentOS 7 based K8s cluster maker
     - rocky-8.6/ : Rocky linux 8.6 based K8s cluster maker
