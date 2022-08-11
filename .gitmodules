@@ -1,3 +1,0 @@
-[submodule "online-cluster/ubuntu-20.04/external-IC"]
-	path = online-cluster/ubuntu-20.04/external-IC
-	url = https://github.com/haeramkeem/haproxy-ingress-controller-external-example.git

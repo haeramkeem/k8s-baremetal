@@ -18,7 +18,7 @@ This repository contains:
     - rocky-8.6/ : Rocky linux 8.6 based K8s cluster maker
     - ubuntu-20.04/ : Ubuntu 20.04 LTS based K8s cluster makers
         - high-available/ : Highly-Available controlplane setup
-        - external-IC/ : External HAProxy IC frontend setup
+        - haproxy-ingress-controller-external-example/ : External HAProxy IC frontend setup
 - offline-cluster/ : Offline K8s Cluster makers
     - centos-7/ : CentOS 7 based offline K8s cluster maker
     - rocky-8.6/ : Rocky linux 8.6 based offline K8s cluster maker
