@@ -1,9 +1,18 @@
 # Kubernetes Infrastructure as Code
 
+## Scope of this repository
+
 This repository contains:
 
-1. K8s cluster VM setup automation tools (IaC)
+1. K8s cluster VM setup automation scripts
 2. Demos for the Kubernetes and Docker
+
+This repository **DO NOT** contain:
+
+1. K8s manifest YAMLs (for deploying applications, object templates, etc)
+2. Helm charts and values
+
+Plz refer to [Yammy repository](https://github.com/haeramkeem/yammy) if u wanna archive the manifests
 
 ## Prerequisites
 
