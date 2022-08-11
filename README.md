@@ -1,9 +1,36 @@
-# Infrastructure Exercise
-## About
-- Articles and demos for understanding the Docker & Kubernetes infrastructure
-- K8s manifests and Helm values for deploying application
-- The contents are mainly based on [this book](https://github.com/sysnet4admin/_Book_k8sInfra)
-- This repository in maintained under the internship program @[Satrec Initiative Co., Ltd.](https://www.satreci.com)
-## Article Index
-1. [Docker](./article/Docker/README.md)
-2. [Kubernetes](./article/Kubernetes/README.md)
+# ClusterMaker
+
+This repository contains:
+
+1. K8s cluster VM setup automation tools
+2. Demos for the Kubernetes and Docker
+
+## Prerequisites
+
+- `VirtualBox` : VM provider
+- `Vagrant` : VM provisioner
+
+## Index
+
+- online-cluster/ : Online K8s cluster makers
+    - centos-7/ : CentOS 7 based K8s cluster maker
+    - rocky-8.6/ : Rocky linux 8.6 based K8s cluster maker
+    - ubuntu-20.04/ : Ubuntu 20.04 LTS based K8s cluster makers
+        - high-available/ : Highly-Available controlplane setup
+        - external-IC/ : External HAProxy IC frontend setup
+- offline-cluster/ : Offline K8s Cluster makers
+    - centos-7/ : CentOS 7 based offline K8s cluster maker
+    - rocky-8.6/ : Rocky linux 8.6 based offline K8s cluster maker
+        - high-available/ : Highly-Available controlplane setup
+        - minimum/ : K8s cluster w/ minimum setup
+    - ubuntu-20.04/ : Ubuntu 20.04 LTS based offline K8s cluster makers
+        - high-available/ : Highly-Available controlplane setup
+        - minimum/ : K8s cluster w/ minimum setup
+- offline-app-installer/ : Offline K8s application installer packs
+    - external-HAProxy-IC/ : External HAProxy IC migrator
+    - HA-PostgreSQL/ : Highly-available PostgreSQL downloader & installer
+    - HA-redis/ : Highly-available Redis downloader & installer
+    - HA-harbor/ : Highly-available Harbor image registry downloader & installer
+    - loki-stack/ : Loki stack (PLG) downloader & installer
+    - nfs-subdir-external-provisioner/ : NFS external PV provisioner downloader & installer
+    - docker-registry/ : Basic docker registry downloader & installer

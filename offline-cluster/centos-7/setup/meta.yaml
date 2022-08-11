@@ -1,0 +1,31 @@
+# Metadata, config, version information for Kubernetes cluster
+node:
+  worker_count: 3
+  ip:
+    master: 192.168.1.10
+    worker_base: 192.168.1.10
+docker:
+  versions:
+    ce: 20.10.9
+    cli: 20.10.9
+    containerd: 1.5.11
+  registry:
+    ip: 192.168.1.10
+    port: 8443
+kubernetes:
+  versions:
+    kubectl: 1.23.5
+    kubelet: 1.23.5
+    kubeadm: 1.23.5
+    kube_apiserver: v1.23.5
+    kube_controller_manager: v1.23.5
+    kube_scheduler: v1.23.5
+    kube_proxy: v1.23.5
+    pause: 3.6
+    etcd: 3.5.1-0
+    coredns: v1.8.6
+  const:
+    token: 123456.1234567890123456
+    cidr: 172.16.0.0/16
+cni:
+  yaml: https://projectcalico.docs.tigera.io/manifests/calico.yaml
