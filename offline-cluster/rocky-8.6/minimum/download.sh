@@ -17,6 +17,7 @@ STUFF="k8s"
 INSTALLDIR=${1:-"$PWD"}
 WORKDIR="$INSTALLDIR/$STUFF"
 VERSION=${2:+"-$2"}
+CNI_YAML="https://projectcalico.docs.tigera.io/manifests/calico.yaml"
 
 # Working directories
 mkdir -pv $WORKDIR
@@ -29,7 +30,7 @@ source <(curl -sL https://raw.githubusercontent.com/haeramkeem/sh-it/main/func/g
 source <(curl -sL https://raw.githubusercontent.com/haeramkeem/sh-it/main/func/dl_oci_imgs.sh)
 
 # Install docker and kube stuff
-bash <(curl -sL https://raw.githubusercontent.com/haeramkeem/sh-it/main/install/rhel8/kube.sh)
+bash <(curl -sL https://raw.githubusercontent.com/haeramkeem/sh-it/main/install/kube/rhel8.sh)
 
 # Download containerd and kube stuff
 repotrack containerd kubelet$VERSION kubectl$VERSION kubeadm$VERSION --disableexcludes kubernetes
@@ -40,7 +41,6 @@ kubeadm config images list \
     | dl_oci_imgs $WORKDIR/images
 
 # download cni yaml
-CNI_YAML="https://projectcalico.docs.tigera.io/manifests/calico.yaml"
 curl -Lo $WORKDIR/manifests/cni.yaml $CNI_YAML
 
 # download cni-related docker image
@@ -49,7 +49,7 @@ cat $WORKDIR/manifests/cni.yaml \
     | dl_oci_imgs $WORKDIR/images
 
 # COPY 'install.sh' CONTENT
-INSTALL_SH_URL="https://raw.githubusercontent.com/haeramkeem/clustermaker/main/offline-cluster/rocky-8.6/minimum/src/install.sh"
-curl -L $INSTALL_SH_URL -o $WORKDIR/install.sh
+curl -L "https://raw.githubusercontent.com/haeramkeem/k8s-iac/main/offline-cluster/rocky-8.6/minimum/src/install.sh" \
+    -o $WORKDIR/install.sh
 sed -i 's/\r//g' $WORKDIR/install.sh
 chmod 700 $WORKDIR/install.sh
