@@ -32,7 +32,7 @@ mkdir -pv $WORKDIR/images
 bash <(curl -sL https://raw.githubusercontent.com/haeramkeem/k8s-iac/main/offline-cluster/rocky-8.6/minimum/download.sh) "$WORKDIR"
 
 # Download kube-vip
-dl_oci-imgs $WORKDIR/images <<< "ghcr.io/kube-vip/kube-vip:$VERSION"
+dl_oci_imgs $WORKDIR/images <<< "ghcr.io/kube-vip/kube-vip:$VERSION"
 
 # COPY 'install.sh' CONTENT
 INSTALL_SH_URL="https://raw.githubusercontent.com/haeramkeem/k8s-iac/main/offline-cluster/rocky-8.6/kube-vip/src/install.sh"
