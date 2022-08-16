@@ -5,8 +5,10 @@
 # Testing environment: https://www.katacoda.com/courses/kubernetes/playground   #
 #################################################################################
 
+BASEURL="https://raw.githubusercontent.com/haeramkeem/k8s-iac/main/demos/kubernetes/ConfigMap"
+
 # Create MetalLB object to demo with ConfigMap of MetalLB
-bash <(curl -sL https://raw.githubusercontent.com/haeramkeem/k8s-exercise/main/ch3/3.3.4-LoadBalancer/metallb-install.sh)
+bash <(curl -sL $BASEURL/metallb-install.sh)
 
 # Create testing deployment
 kubectl create deployment cfgmap --image=sysnet4admin/echo-hname
@@ -19,7 +21,7 @@ OLD_IP=$(kubectl get services cfgmap-svc -o=jsonpath='{.status.loadBalancer.ingr
 echo ""
 
 # Apply new ConfigMap spec
-kubectl apply -f https://raw.githubusercontent.com/haeramkeem/k8s-exercise/main/ch3/3.4.2/metallb-l2config-new.yaml
+kubectl apply -f $BASEURL/metallb-l2config-new.yaml
 
 # Restart MetalLB pods, and services
 kubectl delete pods --all -n metallb-system

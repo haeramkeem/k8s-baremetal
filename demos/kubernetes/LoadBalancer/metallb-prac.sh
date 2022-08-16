@@ -6,7 +6,6 @@
 #################################################################################
 
 # Create deployment for testing
-echo "----- DEPLOYMENT FOR TESTING -----"
 kubectl create deployment lb-hname-pods --image=sysnet4admin/echo-hname
 kubectl create deployment lb-ip-pods --image=sysnet4admin/echo-ip
 
@@ -17,26 +16,7 @@ kubectl scale deployment lb-hname-pods --replicas=2
 kubectl get pods
 echo ""
 
-# Create MetalLB pods (contoller and speakers)
-#   1 controller and 2 speakers will be created
-echo "----- METALLB PODS -----"
-METALLB_URL=https://raw.githubusercontent.com/haeramkeem/k8s-exercise/main/ch3/3.3.4-LoadBalancer/metallb.yaml
-kubectl apply -f $METALLB_URL
-
-# Show creation result
-kubectl get pods -n metallb-system -o wide
-echo ""
-
-# Create ConfigMap for MetalLB
-echo "----- METALLB CONFIGMAP -----"
-kubectl apply -f https://raw.githubusercontent.com/haeramkeem/k8s-exercise/main/ch3/3.3.4-LoadBalancer/metallb-l2config.yaml
-
-# Show creation result
-kubectl get configmap -n metallb-system
-echo ""
-
 # Expose each deployment to LoadBalancer
-echo "----- EXPOSE TESTING DEPLOYMENT -----"
 kubectl expose deployment lb-hname-pods --type=LoadBalancer --name=lb-hname-svc --port=80
 kubectl expose deployment lb-ip-pods --type=LoadBalancer --name=lb-ip-svc --port=80
 
