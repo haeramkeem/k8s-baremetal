@@ -64,12 +64,13 @@ sudo mkdir -pv /etc/kubernetes/manifests
 
 if [[ $KUBE_VIP_MODE == "arp" ]]; then
     kube-vip manifest pod \
-        --interface $NIC_NAME \
-        --address $APISERVER_VIP \
-        --controlplane \
-        --services \
-        --arp \
-        --leaderElection \
+        --interface $NIC_NAME \         # Primary NIC name
+        --address $APISERVER_VIP \      # VIP
+        --controlplane \                # Enable Kube-vip controlplane feature (VIP etc)
+        --services \                    # Enable `LoadBalancer` K8s service type watcher
+        --arp \                         # Use GARP to broadcast VIP-MAC
+        --leaderElection \              # Elect leader for VIP / LB responsibility
+        --enableLoadBalancer \          # Enable Kube-apiserver load balancing
         | sed 's/imagePullPolicy: Always/imagePullPolicy: IfNotPresent/g' \
         | sudo tee /etc/kubernetes/manifests/kube-vip.yaml
 fi
@@ -109,17 +110,17 @@ case "$MODE" in
         --token $TOKEN \
         --token-ttl 0 \
         --pod-network-cidr $POD_CIDR \
-        --apiserver-advertise-address $APISERVER_VIP \
         --upload-certs \
         --control-plane-endpoint $APISERVER_VIP:6443
+        # --apiserver-advertise-address $APISERVER_VIP <-- It doesn't work for Kube-vip
 
     # Copy kubeconfig
     sudo mkdir /root/.kube
-    sudo cp -i /etc/kubernetes/admin.conf /root/.kube/config
+    sudo cp /etc/kubernetes/admin.conf /root/.kube/config
     sudo chown root:root /root/.kube/config # Double checking
 
     sudo mkdir $HOME/.kube
-    sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+    sudo cp /etc/kubernetes/admin.conf $HOME/.kube/config
     sudo chown $(id -u):$(id -g) $HOME/.kube/config
 
     # Install CNI plugin
@@ -150,11 +151,11 @@ case "$MODE" in
 
     # Copy kubeconfig
     sudo mkdir /root/.kube
-    sudo cp -i /etc/kubernetes/admin.conf /root/.kube/config
+    sudo cp /etc/kubernetes/admin.conf /root/.kube/config
     sudo chown root:root /root/.kube/config # Double checking
 
     sudo mkdir $HOME/.kube
-    sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+    sudo cp /etc/kubernetes/admin.conf $HOME/.kube/config
     sudo chown $(id -u):$(id -g) $HOME/.kube/config
     ;;
 
