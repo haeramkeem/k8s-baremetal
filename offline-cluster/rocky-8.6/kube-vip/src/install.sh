@@ -34,11 +34,12 @@ KUBE_VIP_BGP_LOCAL_AS=65000
 # -------------------------
 # Options
 # -------------------------
-while getopts 'm:c:k:' opt; do
+while getopts 'm:c:k:s' opt; do
     case "$opt" in
         m) echo "Initiation mode set to ${MODE:=$OPTARG}" ;;
         c) echo "Certificate key set to ${CERT_KEY:=$OPTARG}" ;;
         k) KUBE_VIP_MODE=$OPTARG; echo "Kube-vip mode set to $KUBE_VIP_MODE" ;;
+        s) SKIP_COMPONENT_INSTALLATION="yes"; echo "Skip installing cluster components" ;;
         *) echo "Unknown option '$opt'"; exit 1 ;;
     esac
 done
@@ -46,12 +47,15 @@ done
 # -------------------------
 # Install minimum cluster components
 # -------------------------
-$WORKDIR/k8s/install.sh -M $MASTER_CNT -W $WORKER_CNT
+if [[ $SKIP_COMPONENT_INSTALLATION != "yes" ]]; then
+    # Installing
+    $WORKDIR/k8s/install.sh -M $MASTER_CNT -W $WORKER_CNT
 
-# Load images
-for img in $(ls $WORKDIR/images/*.tar); do
-    sudo ctr -n k8s.io images import $img
-done
+    # Load images
+    for img in $(ls $WORKDIR/images/*.tar); do
+        sudo ctr -n k8s.io images import $img
+    done
+fi
 
 # Helper funcs
 kube-vip() {
@@ -59,10 +63,25 @@ kube-vip() {
     sudo ctr -n k8s.io run --rm --net-host $IMG vip /kube-vip $@
 }
 
+gen-kubeconfig() {
+    sudo mkdir -pv /root/.kube
+    sudo cp -v /etc/kubernetes/admin.conf /root/.kube/config
+    sudo chown root:root /root/.kube/config # Double checking
+
+    sudo mkdir -pv $HOME/.kube
+    sudo cp -v /etc/kubernetes/admin.conf $HOME/.kube/config
+    sudo chown $(id -u):$(id -g) $HOME/.kube/config
+}
+
+# -------------------------
+# Gen kube-vip manifest
+# -------------------------
 # ARP Mode Manifest
 sudo mkdir -pv /etc/kubernetes/manifests
 
-if [[ $KUBE_VIP_MODE == "arp" ]]; then
+case "$KUBE_VIP_MODE" in
+    # ARP Mode Manifest
+    arp)
     kube-vip manifest pod \
         --interface $NIC_NAME \         # Primary NIC name
         --address $APISERVER_VIP \      # VIP
@@ -73,10 +92,10 @@ if [[ $KUBE_VIP_MODE == "arp" ]]; then
         --enableLoadBalancer \          # Enable Kube-apiserver load balancing
         | sed 's/imagePullPolicy: Always/imagePullPolicy: IfNotPresent/g' \
         | sudo tee /etc/kubernetes/manifests/kube-vip.yaml
-fi
+    ;;
 
-# BGP Mode Manifest
-if [[ $KUBE_VIP_MODE == "bgp" ]]; then
+    # BGP Mode Manifest
+    bgp)
     # Gen BGP peer string
     KUBE_VIP_BGP_PEERS=$MASTER_IP_PREFIX"1:$KUBE_VIP_BGP_LOCAL_AS::false"
     for i in $(seq 2 $MASTER_CNT); do
@@ -95,8 +114,14 @@ if [[ $KUBE_VIP_MODE == "bgp" ]]; then
         --bgppeers $KUBE_VIP_BGP_PEERS \
         | sed 's/imagePullPolicy: Always/imagePullPolicy: IfNotPresent/g' \
         | sudo tee /etc/kubernetes/manifests/kube-vip.yaml
-fi
+    ;;
 
+    *) echo "'-k' flag not provided. Skipping kube-vip manifest generation..."
+esac
+
+# -------------------------
+# Init or join cluster
+# -------------------------
 case "$MODE" in
     init)
     # Allow firewall
@@ -115,13 +140,7 @@ case "$MODE" in
         # --apiserver-advertise-address $APISERVER_VIP <-- It doesn't work for Kube-vip
 
     # Copy kubeconfig
-    sudo mkdir /root/.kube
-    sudo cp /etc/kubernetes/admin.conf /root/.kube/config
-    sudo chown root:root /root/.kube/config # Double checking
-
-    sudo mkdir $HOME/.kube
-    sudo cp /etc/kubernetes/admin.conf $HOME/.kube/config
-    sudo chown $(id -u):$(id -g) $HOME/.kube/config
+    gen-kubeconfig
 
     # Install CNI plugin
     kubectl create -f $WORKDIR/k8s/manifests/cni.yaml
@@ -150,13 +169,7 @@ case "$MODE" in
         $APISERVER_VIP:6443
 
     # Copy kubeconfig
-    sudo mkdir /root/.kube
-    sudo cp /etc/kubernetes/admin.conf /root/.kube/config
-    sudo chown root:root /root/.kube/config # Double checking
-
-    sudo mkdir $HOME/.kube
-    sudo cp /etc/kubernetes/admin.conf $HOME/.kube/config
-    sudo chown $(id -u):$(id -g) $HOME/.kube/config
+    gen-kubeconfig
     ;;
 
     worker)
