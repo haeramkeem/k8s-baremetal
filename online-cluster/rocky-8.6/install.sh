@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Install containerd, kube
-bash <(curl -sL https://raw.githubusercontent.com/haeramkeem/sh-it/main/install/rhel8/kube.sh)
+bash <(curl -sL https://raw.githubusercontent.com/haeramkeem/sh-it/main/install/kube/rhel8.sh)
 
 TOKEN="123456.0123456789123456"
 MODE=$1
@@ -9,8 +9,12 @@ MASTER_IP=$2
 
 # Master
 if [[ $MODE == "master" ]]; then
-    firewall-cmd --permanent --add-port={179,6443,2379,2380,10250,10257,10259}/tcp
-    firewall-cmd --reload
+    bash <(curl -sL https://raw.githubusercontent.com/haeramkeem/sh-it/main/install/kubectl/rhel8.sh)
+
+    if `systemctl is-active --quiet firewalld`; then
+        firewall-cmd --permanent --add-port={179,6443,2379,2380,10250,10257,10259}/tcp
+        firewall-cmd --reload
+    fi
 
     kubeadm init \
         --token $TOKEN \
@@ -27,13 +31,15 @@ if [[ $MODE == "master" ]]; then
     cp -irv /etc/kubernetes/admin.conf /home/vagrant/.kube/config
     chown vagrant:vagrant /home/vagrant/.kube/config
 
-    kubectl apply -f https://projectcalico.docs.tigera.io/manifests/calico.yaml
+    kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.24.0/manifests/calico.yaml
 fi
 
 # Worker
 if [[ $MODE == "worker" ]]; then
-    firewall-cmd --permanent --add-port={179,10250,30000-32767}/tcp
-    firewall-cmd --reload
+    if `systemctl is-active --quiet firewalld`; then
+        firewall-cmd --permanent --add-port={179,10250,30000-32767}/tcp
+        firewall-cmd --reload
+    fi
 
     kubeadm join \
         --token $TOKEN \

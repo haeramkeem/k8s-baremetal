@@ -17,7 +17,7 @@ STUFF="k8s"
 INSTALLDIR=${1:-"$PWD"}
 WORKDIR="$INSTALLDIR/$STUFF"
 VERSION=${2:+"-$2"}
-CNI_YAML="https://projectcalico.docs.tigera.io/manifests/calico.yaml"
+CNI_YAML="https://raw.githubusercontent.com/projectcalico/calico/v3.24.0/manifests/calico.yaml"
 
 # Working directories
 mkdir -pv $WORKDIR
