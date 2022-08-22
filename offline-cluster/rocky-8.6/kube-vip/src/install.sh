@@ -108,6 +108,7 @@ case "$KUBE_VIP_MODE" in
         --address $APISERVER_VIP \
         --controlplane \
         --services \
+        --enableLoadBalancer \
         --bgp \
         --localAS $KUBE_VIP_BGP_LOCAL_AS \
         --bgpRouterID $KUBE_VIP_BGP_ROUTER_ID \

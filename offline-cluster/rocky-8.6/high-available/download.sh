@@ -32,7 +32,7 @@ source <(curl -sL https://raw.githubusercontent.com/haeramkeem/sh-it/main/func/g
 source <(curl -sL https://raw.githubusercontent.com/haeramkeem/sh-it/main/func/dl_oci_imgs.sh)
 
 # Download minimum installation files
-bash <(curl -sL https://raw.githubusercontent.com/haeramkeem/clustermaker/main/offline-cluster/rocky-8.6/minimum/download.sh) "$WORKDIR"
+bash <(curl -sL https://raw.githubusercontent.com/haeramkeem/k8s-iac/main/offline-cluster/rocky-8.6/minimum/download.sh) "$WORKDIR"
 
 # Build HAProxy binary
 FNAME="haproxy-$HAPROXY_VER"
@@ -67,13 +67,13 @@ KA_CONF_URL="https://raw.githubusercontent.com/haeramkeem/sh-it/main/install/kee
 curl -Lo $WORKDIR/etc/keepalived.real.conf "$KA_CONF_URL.real.conf"
 curl -Lo $WORKDIR/etc/keepalived.sorry.conf "$KA_CONF_URL.sorry.conf"
 # - Download keepalived health checker
-CHECK_APISERVER_URL="https://raw.githubusercontent.com/haeramkeem/clustermaker/main/offline-cluster/rocky-8.6/high-available/src/check_apiserver.sh"
+CHECK_APISERVER_URL="https://raw.githubusercontent.com/haeramkeem/k8s-iac/main/offline-cluster/rocky-8.6/high-available/src/check_apiserver.sh"
 curl -Lo $WORKDIR/etc/check_apiserver.sh $CHECK_APISERVER_URL
 sed -i 's/\r//g' $WORKDIR/etc/check_apiserver.sh
 chmod 700 $WORKDIR/etc/check_apiserver.sh
 
 # COPY 'install.sh' CONTENT
-INSTALL_SH_URL="https://raw.githubusercontent.com/haeramkeem/clustermaker/main/offline-cluster/rocky-8.6/high-available/src/install.sh"
+INSTALL_SH_URL="https://raw.githubusercontent.com/haeramkeem/k8s-iac/main/offline-cluster/rocky-8.6/high-available/src/install.sh"
 curl -Lo $WORKDIR/install.sh $INSTALL_SH_URL
 sed -i 's/\r//g' $WORKDIR/install.sh
 chmod 700 $WORKDIR/install.sh

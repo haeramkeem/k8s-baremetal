@@ -11,7 +11,7 @@ vagrant up
 - To download requirements to the existing node:
 
 ```bash
-bash <(curl -sL https://raw.githubusercontent.com/haeramkeem/clustermaker/main/offline-cluster/rocky-8.6/high-available/download.sh)
+bash <(curl -sL https://raw.githubusercontent.com/haeramkeem/k8s-iac/main/offline-cluster/rocky-8.6/high-available/download.sh)
 ```
 
 ## Initiate cluster on offline node
