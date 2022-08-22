@@ -1,0 +1,18 @@
+# Source: https://kube-vip.io/docs/usage/cloud-provider/
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kubevip
+  namespace: kube-system
+data:
+  # Syntax:
+  #   `$TYPE-$NAMESPACE: $CIDR_OR_RANGE`
+  #   - $TYPE: 'cidr' or 'range'
+  #   - $NAMESPACE: namespace name or 'global'
+  # Example:
+  #   cidr-default: 192.168.0.200/29                      # CIDR-based IP range for use in the default Namespace
+  #   range-development: 192.168.0.210-192.168.0.219      # Range-based IP range for use in the 'development' Namespace
+  #   cidr-finance: 192.168.0.220/29,192.168.0.230/29     # Multiple CIDR-based ranges for use in the 'finance' Namespace
+  #   cidr-global: 192.168.0.240/29                       # CIDR-based range which can be used in any Namespace
+  cidr-global: 192.168.1.64/29
