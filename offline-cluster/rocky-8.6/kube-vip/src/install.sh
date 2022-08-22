@@ -83,13 +83,13 @@ case "$KUBE_VIP_MODE" in
     # ARP Mode Manifest
     arp)
     kube-vip manifest pod \
-        --interface $NIC_NAME \         # Primary NIC name
-        --address $APISERVER_VIP \      # VIP
-        --controlplane \                # Enable Kube-vip controlplane feature (VIP etc)
-        --services \                    # Enable `LoadBalancer` K8s service type watcher
-        --arp \                         # Use GARP to broadcast VIP-MAC
-        --leaderElection \              # Elect leader for VIP / LB responsibility
-        --enableLoadBalancer \          # Enable Kube-apiserver load balancing
+        --interface $NIC_NAME \
+        --address $APISERVER_VIP \
+        --controlplane \
+        --services \
+        --arp \
+        --leaderElection \
+        --enableLoadBalancer \
         | sed 's/imagePullPolicy: Always/imagePullPolicy: IfNotPresent/g' \
         | sudo tee /etc/kubernetes/manifests/kube-vip.yaml
     ;;
